@@ -1,0 +1,56 @@
+<template>
+	<cl-page>
+		<view class="p-3">
+			<view class="order-card" v-for="item in list" :key="item.no">
+				<view class="flex flex-row items-center">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.service }}</cl-text>
+					<cl-tag class="ml-auto" :type="item.statusType" size="mini">{{ item.status }}</cl-tag>
+				</view>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">
+					工单号 {{ item.no }} · {{ item.time }}
+				</cl-text>
+				<view class="progress">
+					<view class="step" v-for="step in item.steps" :key="step">
+						<cl-icon name="checkbox-circle-line" :size="12"></cl-icon>
+						<cl-text :size="12" :pt="{ className: 'ml-1' }">{{ step }}</cl-text>
+					</view>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+const list = [
+	{
+		no: "WO-20240208-001",
+		service: "隐形车衣",
+		status: "施工中",
+		statusType: "warning",
+		time: "今日 14:00",
+		steps: ["进店检车", "施工中", "质检中"]
+	},
+	{
+		no: "WO-20240207-008",
+		service: "玻璃防爆膜",
+		status: "已完成",
+		statusType: "success",
+		time: "昨日 10:30",
+		steps: ["进店检车", "施工完成", "交付"]
+	}
+];
+</script>
+
+<style lang="scss" scoped>
+.order-card {
+	@apply bg-white rounded-2xl p-4 mb-3;
+}
+
+.progress {
+	@apply mt-3 flex flex-col gap-1;
+}
+
+.step {
+	@apply flex flex-row items-center;
+}
+</style>

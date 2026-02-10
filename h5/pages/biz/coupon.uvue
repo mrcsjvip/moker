@@ -1,0 +1,31 @@
+<template>
+	<cl-page>
+		<view class="p-3">
+			<view class="coupon-card" v-for="item in coupons" :key="item.name">
+				<view class="flex flex-row items-center">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
+					<cl-tag class="ml-auto" type="primary" size="mini">{{ item.type }}</cl-tag>
+				</view>
+				<cl-text :size="24" :pt="{ className: 'font-bold text-primary-500 mt-2' }">
+					{{ item.value }}
+				</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">
+					满{{ item.minSpend }}可用 · {{ item.valid }}
+				</cl-text>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+const coupons = [
+	{ name: "贴膜立减券", type: "满减", value: "¥200", minSpend: 1200, valid: "2026.02.01-2026.03.01" },
+	{ name: "玻璃膜折扣券", type: "折扣", value: "9折", minSpend: 800, valid: "2026.02.01-2026.03.01" }
+];
+</script>
+
+<style lang="scss" scoped>
+.coupon-card {
+	@apply bg-white rounded-2xl p-4 mb-3;
+}
+</style>

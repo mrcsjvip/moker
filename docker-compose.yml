@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  server:
+    image: node:20-alpine
+    working_dir: /app/server
+    volumes:
+      - ./:/app
+    environment:
+      NODE_ENV: local
+      DB_HOST: host.docker.internal
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: 123456
+      DB_NAME: moker
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "8001:8001"
+    depends_on:
+      - redis
+
+  admin:
+    image: node:20-alpine
+    working_dir: /app/admin
+    volumes:
+      - ./:/app
+    environment:
+      VITE_API_HOST: http://server:8001
+    command: sh -c "npm install && npm run dev"
+    ports:
+      - "9000:9000"
+    depends_on:
+      - server
+

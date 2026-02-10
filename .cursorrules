@@ -1,0 +1,47 @@
+# .cursorrules
+
+You are an expert full-stack JavaScript/TypeScript developer working on a modern, secure, and maintainable web application.
+
+## Project Structure
+- Backend server (Node.js): in `/server` or `/api` — TypeScript only, style inspired by `cool-admin-midway` (https://github.com/cool-team-official/cool-admin-midway).
+- Frontend admin web: in `/admin` or `/web` — Vue 3 + Vite + Element Plus + Pinia, inspired by `cool-admin-vue` (https://github.com/cool-team-official/cool-admin-vue).
+- Frontend H5 app: in `/h5` or `/mobile` — Vue 3 or React, optimized for mobile web.
+- Shared types/utils (if any): in `/shared`.
+- Use ES Modules (import/export), not CommonJS.
+- All code must be in TypeScript (.ts / .tsx) unless explicitly required otherwise.
+
+## Coding Standards
+- Use strict TypeScript with `strict: true` in tsconfig.json.
+- Prefer functional components in React; avoid class components.
+- Use async/await, never raw Promises or callbacks.
+- Validate all API inputs with Zod, Joi, or express-validator.
+- Never commit secrets, hardcoded passwords, or dev-only logs to production code.
+- Handle errors gracefully; never let uncaught exceptions crash the server.
+- Use environment variables via `dotenv` for config (e.g., PORT, DB_URL).
+- Log with a structured logger like winston or pino — no `console.log` in production logic.
+
+## Security
+- Sanitize user inputs to prevent XSS and injection attacks.
+- Set secure HTTP headers (helmet middleware in Express).
+- Use CORS wisely — restrict origins in production.
+- Passwords must be hashed with bcrypt (or similar); never store plaintext.
+- Use JWT or session-based auth with proper token expiration and refresh logic.
+
+## Architecture
+- Backend: Follow layered design (routes → controllers → services → repositories), align with Midway modules + decorators.
+- Frontend: Use composition APIs and Pinia stores; avoid prop drilling.
+- API contracts should be clear: RESTful conventions with versioning.
+- Separate config, constants, and utilities into dedicated folders.
+- Write unit tests (Jest/Vitest) and integration tests where feasible.
+
+## AI Behavior Guidance
+- When generating code, always include error handling and type safety.
+- Prefer modern, idiomatic patterns over legacy approaches.
+- If unsure about project-specific logic, ask for clarification rather than guessing.
+- Do not generate placeholder comments like "TODO: implement"; write complete, working examples.
+- When modifying existing files, preserve the existing style and structure.
+
+## Additional Notes
+- The app supports multi-tenant architecture (e.g., `tenantId` in requests).
+- Database: Prefer PostgreSQL or MySQL with an ORM like Prisma or TypeORM.
+- Deployment: Docker-ready; include health check endpoints (`/health`).

@@ -1,0 +1,67 @@
+<template>
+	<cl-page>
+		<view class="p-3">
+			<view class="card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">预约信息</cl-text>
+				<cl-list border>
+					<cl-list-item label="姓名" justify="start">
+						<cl-input v-model="form.name" placeholder="请输入姓名"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="手机号" justify="start">
+						<cl-input v-model="form.phone" type="number" placeholder="请输入手机号"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="车牌号" justify="start">
+						<cl-input v-model="form.plateNumber" placeholder="请输入车牌号"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="到店时间" justify="start">
+						<cl-input v-model="form.appointmentTime" placeholder="选择到店时间"></cl-input>
+					</cl-list-item>
+				</cl-list>
+			</view>
+
+			<view class="card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">服务选择</cl-text>
+				<cl-list border>
+					<cl-list-item label="服务项目" justify="start">
+						<cl-input v-model="form.serviceName" placeholder="请选择服务"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="备注" justify="start">
+						<cl-input v-model="form.remark" placeholder="可填写特殊需求"></cl-input>
+					</cl-list-item>
+				</cl-list>
+			</view>
+
+			<cl-button type="primary" round class="w-full mt-4" @tap="submit">
+				提交预约
+			</cl-button>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const form = ref({
+	name: "",
+	phone: "",
+	plateNumber: "",
+	appointmentTime: "",
+	serviceName: "",
+	remark: ""
+});
+
+function submit() {
+	ui.showToast({
+		message: "预约已提交"
+	});
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-2xl p-4 mb-3;
+}
+</style>

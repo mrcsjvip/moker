@@ -1,0 +1,36 @@
+<template>
+	<cl-page>
+		<view class="p-3">
+			<view class="store-card" v-for="item in stores" :key="item.name">
+				<view class="flex flex-row items-center">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
+					<cl-tag class="ml-auto" type="success" size="mini">营业中</cl-tag>
+				</view>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.address }}</cl-text>
+				<view class="flex flex-row mt-3">
+					<cl-button size="mini">导航</cl-button>
+					<cl-button size="mini" type="primary" class="ml-2">预约</cl-button>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+const stores = [
+	{
+		name: "深圳旗舰店",
+		address: "深圳市南山区科技大道 88 号"
+	},
+	{
+		name: "深圳宝安店",
+		address: "深圳市宝安区创业一路 168 号"
+	}
+];
+</script>
+
+<style lang="scss" scoped>
+.store-card {
+	@apply bg-white rounded-2xl p-4 mb-3;
+}
+</style>
