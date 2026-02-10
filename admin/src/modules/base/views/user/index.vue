@@ -64,6 +64,7 @@ defineOptions({
 
 import { useTable, useUpsert, useCrud } from '@cool-vue/crud';
 import { useCool } from '/@/cool';
+import { useBase } from '/$/base';
 import DeptList from './components/dept-list.vue';
 import UserMove from './components/user-move.vue';
 import { useViewGroup } from '/@/plugins/view';
@@ -71,6 +72,7 @@ import { useI18n } from 'vue-i18n';
 import { Plugins } from '/#/crud';
 
 const { service, refs, setRefs } = useCool();
+const { user } = useBase();
 const { t } = useI18n();
 
 const { ViewGroup } = useViewGroup({
@@ -118,6 +120,11 @@ const Table = useTable({
 			prop: 'departmentName',
 			label: t('部门名称'),
 			minWidth: 120
+		},
+		{
+			prop: 'tenantId',
+			label: t('租户'),
+			minWidth: 100
 		},
 		{
 			prop: 'roleName',
@@ -243,6 +250,25 @@ const Upsert = useUpsert({
 				}
 			}
 		},
+		// 仅超级管理员（无 tenantId）可看到并选择租户；租户管理员只能管理本租户用户，由后端强制 tenantId
+		...(user.info?.tenantId == null
+			? [
+					{
+						prop: 'tenantId',
+						label: t('租户'),
+						span: 12,
+						value: null,
+						component: {
+							name: 'el-select',
+							options: [],
+							props: {
+								clearable: true,
+								placeholder: t('请选择租户')
+							}
+						}
+					}
+				]
+			: []),
 		{
 			prop: 'phone',
 			label: t('手机号码'),
@@ -310,6 +336,13 @@ const Upsert = useUpsert({
 				})
 			);
 		});
+		// 设置租户列表（多租户时用于选择用户所属租户）
+		service.base.open.tenantList().then((list: { id: number; name: string }[]) => {
+			Upsert.value?.setOptions(
+				'tenantId',
+				(list || []).map(e => ({ label: e.name || '', value: e.id }))
+			);
+		}).catch(() => {});
 	},
 
 	plugins: [Plugins.Form.setFocus('name')]

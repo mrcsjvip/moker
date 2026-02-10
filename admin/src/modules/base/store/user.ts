@@ -27,11 +27,14 @@ export const useUserStore = defineStore('user', function () {
 
 	// 刷新标识
 	async function refreshToken(): Promise<string> {
+		const stored = storage.get('refreshToken');
+		if (!stored) {
+			logout();
+			return Promise.reject(new Error('登录失效，请重新登录'));
+		}
 		return new Promise((resolve, reject) => {
 			service.base.open
-				.refreshToken({
-					refreshToken: storage.get('refreshToken')
-				})
+				.refreshToken({ refreshToken: stored })
 				.then(res => {
 					setToken(res);
 					resolve(res.token);
@@ -56,6 +59,7 @@ export const useUserStore = defineStore('user', function () {
 	function clear() {
 		storage.remove('userInfo');
 		storage.remove('token');
+		storage.remove('refreshToken');
 		token.value = '';
 		info.value = null;
 	}

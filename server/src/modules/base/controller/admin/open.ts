@@ -78,6 +78,18 @@ export class BaseOpenController extends BaseController {
   /**
    * 获得验证码
    */
+  /**
+   * 租户列表（多租户开启时用于登录页选择租户）
+   */
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Get('/tenantList', { summary: '租户列表' })
+  async tenantList() {
+    return this.ok(await this.baseSysLoginService.getTenantList());
+  }
+
+  /**
+   * 获得验证码
+   */
   @CoolTag(TagTypes.IGNORE_TOKEN)
   @Get('/captcha', { summary: '验证码' })
   async captcha(

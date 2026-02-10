@@ -1,9 +1,9 @@
 <template>
 	<div class="app-views">
-		<router-view v-slot="{ Component }">
+		<router-view v-slot="{ Component, route: r }">
 			<transition :name="app.info.router.transition || 'none'">
 				<keep-alive :key="key" :include="caches">
-					<component :is="Component" />
+					<component :is="Component" :key="r.path" />
 				</keep-alive>
 			</transition>
 		</router-view>

@@ -4,8 +4,10 @@ import { LoginDTO } from '../../dto/login';
 import { PhoneLoginDTO } from '../../dto/phone_login';
 import { v1 as uuid } from 'uuid';
 import { BaseSysUserEntity } from '../../entity/sys/user';
+import { BaseSysTenantEntity } from '../../entity/sys/tenant';
 import { Repository } from 'typeorm';
 import { InjectEntityModel } from '@midwayjs/typeorm';
+import { noTenant } from '../../db/tenant';
 import * as md5 from 'md5';
 import { BaseSysRoleService } from './role';
 import * as _ from 'lodash';
@@ -28,6 +30,9 @@ export class BaseSysLoginService extends BaseService {
   @InjectEntityModel(BaseSysUserEntity)
   baseSysUserEntity: Repository<BaseSysUserEntity>;
 
+  @InjectEntityModel(BaseSysTenantEntity)
+  baseSysTenantEntity: Repository<BaseSysTenantEntity>;
+
   @Inject()
   baseSysRoleService: BaseSysRoleService;
 
@@ -46,18 +51,71 @@ export class BaseSysLoginService extends BaseService {
   @Config('module.base')
   coolConfig;
 
+  @Config('cool.tenant')
+  tenantConfig: { enable?: boolean };
+
+  /**
+   * 获取租户列表（开放接口，用于登录页下拉；仅返回未过期的租户）
+   */
+  async getTenantList() {
+    if (!this.tenantConfig?.enable) {
+      return [];
+    }
+    const today = _.split(new Date().toISOString(), 'T')[0]; // YYYY-MM-DD
+    return noTenant(this.ctx, async () => {
+      return this.baseSysTenantEntity
+        .createQueryBuilder('t')
+        .select(['t.id', 't.name'])
+        .where('t.expireDate IS NULL OR t.expireDate >= :today', { today })
+        .orderBy('t.id', 'ASC')
+        .getMany();
+    });
+  }
+
+  /**
+   * 校验租户是否在有效期内（过期则不允许登录）
+   */
+  private async checkTenantExpire(tenantId: number | null): Promise<void> {
+    if (tenantId == null) return;
+    const tenant = await noTenant(this.ctx, () =>
+      this.baseSysTenantEntity.findOne({
+        where: { id: tenantId },
+        select: ['id', 'expireDate'],
+      })
+    );
+    if (!tenant) return;
+    if (tenant.expireDate) {
+      const today = _.split(new Date().toISOString(), 'T')[0];
+      if (tenant.expireDate < today) {
+        throw new CoolCommException('租户已过期，无法登录~');
+      }
+    }
+  }
+
   /**
    * 登录
    * @param login
    */
   async login(login: LoginDTO) {
-    const { username, captchaId, verifyCode, password } = login;
+    const { username, captchaId, verifyCode, password, tenantId } = login;
     // 校验验证码
     const checkV = await this.captchaCheck(captchaId, verifyCode);
     if (checkV) {
-      const user = await this.baseSysUserEntity.findOneBy({ username });
+      const where: Record<string, unknown> = { username };
+      if (this.tenantConfig?.enable) {
+        const tid =
+          tenantId != null && !Number.isNaN(Number(tenantId))
+            ? Number(tenantId)
+            : null;
+        where.tenantId = tid;
+      }
+      const user = await this.baseSysUserEntity.findOneBy(
+        where as { username: string; tenantId?: number | null }
+      );
       // 校验用户
       if (user) {
+        // 校验租户是否在有效期内（过期则不允许登录）
+        await this.checkTenantExpire(user.tenantId ?? null);
         // 校验用户状态及密码
         if (user.status === 0 || user.password !== md5(password)) {
           throw new CoolCommException('账户或密码不正确~');
@@ -149,17 +207,19 @@ export class BaseSysLoginService extends BaseService {
    * @param height 高
    */
   async captcha(width = 150, height = 50, color = '#fff') {
+    const w = Number(width) || 150;
+    const h = Number(height) || 50;
+    const c = typeof color === 'string' ? color : '#fff';
     const svg = svgCaptcha.create({
-      // ignoreChars: 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM',
-      width,
-      height,
+      width: w,
+      height: h,
       noise: 3,
     });
     const result = {
       captchaId: uuid(),
       data: svg.data.replace(/"/g, "'"),
     };
-    // 文字变白
+    // 文字变白（使用 replace + 全局正则，兼容无 replaceAll 的 Node 版本）
     const rpList = [
       '#111',
       '#222',
@@ -171,8 +231,9 @@ export class BaseSysLoginService extends BaseService {
       '#888',
       '#999',
     ];
+    const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     rpList.forEach(rp => {
-      result.data = result.data['replaceAll'](rp, color);
+      result.data = result.data.replace(new RegExp(escapeRegex(rp), 'g'), c);
     });
 
     // Convert SVG to base64
@@ -249,34 +310,38 @@ export class BaseSysLoginService extends BaseService {
    * @param token
    */
   async refreshToken(token: string) {
-    const decoded = jwt.verify(token, this.coolConfig.jwt.secret);
-    if (decoded && decoded['isRefresh']) {
-      delete decoded['exp'];
-      delete decoded['iat'];
-
-      const { expire, refreshExpire } = this.coolConfig.jwt.token;
-      decoded['isRefresh'] = false;
-      const result = {
-        expire,
-        token: jwt.sign(decoded, this.coolConfig.jwt.secret, {
-          expiresIn: expire,
-        }),
-        refreshExpire,
-        refreshToken: '',
-      };
-      decoded['isRefresh'] = true;
-      result.refreshToken = jwt.sign(decoded, this.coolConfig.jwt.secret, {
-        expiresIn: refreshExpire,
-      });
-      await this.midwayCache.set(
-        `admin:passwordVersion:${decoded['userId']}`,
-        decoded['passwordVersion']
-      );
-      await this.midwayCache.set(
-        `admin:token:${decoded['userId']}`,
-        result.token
-      );
-      return result;
+    if (!token || typeof token !== 'string') {
+      throw new CoolCommException('登录失效~');
     }
+    const decoded = jwt.verify(token, this.coolConfig.jwt.secret) as Record<string, unknown>;
+    if (!decoded || !decoded['isRefresh']) {
+      throw new CoolCommException('登录失效~');
+    }
+    delete decoded['exp'];
+    delete decoded['iat'];
+
+    const { expire, refreshExpire } = this.coolConfig.jwt.token;
+    decoded['isRefresh'] = false;
+    const result = {
+      expire,
+      token: jwt.sign(decoded, this.coolConfig.jwt.secret, {
+        expiresIn: expire,
+      }),
+      refreshExpire,
+      refreshToken: '',
+    };
+    decoded['isRefresh'] = true;
+    result.refreshToken = jwt.sign(decoded, this.coolConfig.jwt.secret, {
+      expiresIn: refreshExpire,
+    });
+    await this.midwayCache.set(
+      `admin:passwordVersion:${decoded['userId']}`,
+      decoded['passwordVersion']
+    );
+    await this.midwayCache.set(
+      `admin:token:${decoded['userId']}`,
+      result.token
+    );
+    return result;
   }
 }

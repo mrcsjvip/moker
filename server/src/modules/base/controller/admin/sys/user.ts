@@ -12,9 +12,14 @@ import { BaseSysUserService } from '../../../service/sys/user';
   entity: BaseSysUserEntity,
   service: BaseSysUserService,
   insertParam: ctx => {
-    return {
+    const param: { userId: number; tenantId?: number } = {
       userId: ctx.admin.userId,
     };
+    // 租户管理员只能在本租户下添加用户，不能指定其他 tenantId
+    if (ctx.admin.tenantId != null) {
+      param.tenantId = ctx.admin.tenantId;
+    }
+    return param;
   },
 })
 export class BaseSysUserController extends BaseController {

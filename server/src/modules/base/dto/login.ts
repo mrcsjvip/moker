@@ -18,4 +18,8 @@ export class LoginDTO {
   // 验证码
   @Rule(RuleType.required())
   verifyCode: number;
+
+  // 租户ID（多租户开启时可选，用于指定登录的租户）
+  @Rule(RuleType.number().allow(null).optional())
+  tenantId?: number | null;
 }

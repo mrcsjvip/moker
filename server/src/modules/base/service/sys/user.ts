@@ -46,7 +46,7 @@ export class BaseSysUserService extends BaseService {
     ); // 部门权限
     const sql = `
         SELECT
-            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,
+            a.id,a.name,a.nickName,a.headImg,a.email,a.remark,a.status,a.createTime,a.updateTime,a.username,a.phone,a.departmentId,a.tenantId,
             b.name as "departmentName"
         FROM
             base_sys_user a
@@ -205,6 +205,10 @@ export class BaseSysUserService extends BaseService {
   async update(param) {
     if (param.id && param.username === 'admin') {
       throw new CoolCommException('非法操作~');
+    }
+    // 租户管理员更新用户时不允许修改 tenantId，强制为本租户
+    if (this.ctx.admin.tenantId != null) {
+      param.tenantId = this.ctx.admin.tenantId;
     }
     if (!_.isEmpty(param.password)) {
       param.password = md5(param.password);

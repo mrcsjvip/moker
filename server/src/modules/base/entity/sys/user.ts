@@ -17,7 +17,8 @@ export class BaseSysUserEntity extends BaseEntity {
   @Column({ comment: '姓名', nullable: true })
   name: string;
 
-  @Index({ unique: true })
+  /** 用户名：唯一性按 (tenantId, username) 约束，同一租户内不可重复，不同租户可重复 */
+  @Index(['tenantId', 'username'], { unique: true })
   @Column({ comment: '用户名', length: 100 })
   username: string;
 

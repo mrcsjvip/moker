@@ -57,12 +57,13 @@ export class TenantSubscriber implements EntitySubscriberInterface<any> {
     urls: string[];
   };
 
-  // 系统接口不过滤
+  // 系统接口不过滤（租户管理仅超级管理员可访问；连锁总部/门店按租户过滤，仅此处列出的 URL 不做租户过滤）
   ignoreUrls = [
     '/admin/base/open/login',
     '/admin/base/comm/person',
     '/admin/base/comm/permmenu',
     '/admin/dict/info/data',
+    '/admin/base/sys/tenant',
   ];
 
   // 不进行租户过滤的用户

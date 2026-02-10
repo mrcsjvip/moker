@@ -287,6 +287,114 @@
                                 "childMenus": []
                             }
                         ]
+                    },
+                    {
+                        "name": "租户管理",
+                        "router": "/sys/tenant",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-dept",
+                        "orderNum": 4,
+                        "viewPath": "modules/base/views/tenant.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": [
+                            {
+                                "name": "新增",
+                                "router": null,
+                                "perms": "base:sys:tenant:add",
+                                "type": 2,
+                                "icon": null,
+                                "orderNum": 1,
+                                "viewPath": null,
+                                "keepAlive": false,
+                                "isShow": true,
+                                "childMenus": []
+                            },
+                            {
+                                "name": "删除",
+                                "router": null,
+                                "perms": "base:sys:tenant:delete",
+                                "type": 2,
+                                "icon": null,
+                                "orderNum": 2,
+                                "viewPath": null,
+                                "keepAlive": false,
+                                "isShow": true,
+                                "childMenus": []
+                            },
+                            {
+                                "name": "修改",
+                                "router": null,
+                                "perms": "base:sys:tenant:update",
+                                "type": 2,
+                                "icon": null,
+                                "orderNum": 3,
+                                "viewPath": null,
+                                "keepAlive": false,
+                                "isShow": true,
+                                "childMenus": []
+                            },
+                            {
+                                "name": "查询",
+                                "router": null,
+                                "perms": "base:sys:tenant:page,base:sys:tenant:list,base:sys:tenant:info",
+                                "type": 2,
+                                "icon": null,
+                                "orderNum": 4,
+                                "viewPath": null,
+                                "keepAlive": false,
+                                "isShow": true,
+                                "childMenus": []
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "name": "连锁管理",
+                "router": null,
+                "perms": null,
+                "type": 0,
+                "icon": "icon-dept",
+                "orderNum": 5,
+                "viewPath": null,
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "总部管理",
+                        "router": "/sys/chain-headquarters",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-menu",
+                        "orderNum": 1,
+                        "viewPath": "modules/base/views/chain-headquarters.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": [
+                            { "name": "新增", "router": null, "perms": "base:sys:chain_headquarters:add", "type": 2, "icon": null, "orderNum": 1, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "删除", "router": null, "perms": "base:sys:chain_headquarters:delete", "type": 2, "icon": null, "orderNum": 2, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "修改", "router": null, "perms": "base:sys:chain_headquarters:update", "type": 2, "icon": null, "orderNum": 3, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "查询", "router": null, "perms": "base:sys:chain_headquarters:page,base:sys:chain_headquarters:list,base:sys:chain_headquarters:info", "type": 2, "icon": null, "orderNum": 4, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] }
+                        ]
+                    },
+                    {
+                        "name": "门店管理",
+                        "router": "/sys/chain-store",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-menu",
+                        "orderNum": 2,
+                        "viewPath": "modules/base/views/chain-store.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": [
+                            { "name": "新增", "router": null, "perms": "base:sys:chain_store:add", "type": 2, "icon": null, "orderNum": 1, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "删除", "router": null, "perms": "base:sys:chain_store:delete", "type": 2, "icon": null, "orderNum": 2, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "修改", "router": null, "perms": "base:sys:chain_store:update", "type": 2, "icon": null, "orderNum": 3, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "查询", "router": null, "perms": "base:sys:chain_store:page,base:sys:chain_store:list,base:sys:chain_store:info", "type": 2, "icon": null, "orderNum": 4, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] }
+                        ]
                     }
                 ]
             },

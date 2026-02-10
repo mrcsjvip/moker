@@ -13,6 +13,22 @@
 
 			<div class="form">
 				<el-form label-position="top" class="form" :disabled="saving">
+					<el-form-item v-if="tenantList.length > 0" :label="$t('租户')">
+						<el-select
+							v-model="form.tenantId"
+							:placeholder="$t('请选择租户')"
+							clearable
+							style="width: 100%"
+						>
+							<el-option
+								v-for="t in tenantList"
+								:key="t.id"
+								:label="t.name"
+								:value="t.id"
+							/>
+						</el-select>
+					</el-form-item>
+
 					<el-form-item :label="$t('用户名')">
 						<el-input
 							v-model="form.username"
@@ -75,7 +91,7 @@ defineOptions({
 	name: 'login'
 });
 
-import { reactive, ref } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { useCool } from '/@/cool';
 import { useBase } from '/$/base';
@@ -89,13 +105,24 @@ const { t } = useI18n();
 
 // 状态
 const saving = ref(false);
+const tenantList = ref<{ id: number; name: string }[]>([]);
 
 // 表单数据
 const form = reactive({
 	username: storage.get('username') || '',
 	password: '',
 	captchaId: '',
-	verifyCode: ''
+	verifyCode: '',
+	tenantId: null as number | null
+});
+
+onMounted(async () => {
+	try {
+		const list = await service.base.open.tenantList();
+		tenantList.value = Array.isArray(list) ? list : [];
+	} catch {
+		tenantList.value = [];
+	}
 });
 
 // 演示模式

@@ -113,6 +113,85 @@ declare namespace Eps {
 		[key: string]: any;
 	}
 
+	interface BaseSysChainHeadquartersEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 总部名称
+		 */
+		name?: string;
+
+		/**
+		 * 备注
+		 */
+		remark?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
+	interface BaseSysChainStoreEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 所属总部ID
+		 */
+		headquartersId?: number;
+
+		/**
+		 * 门店名称
+		 */
+		name?: string;
+
+		/**
+		 * 地址
+		 */
+		address?: string;
+
+		/**
+		 * 联系电话
+		 */
+		contact?: string;
+
+		/**
+		 * 备注
+		 */
+		remark?: string;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
 	interface BaseSysDepartmentEntity {
 		/**
 		 * ID
@@ -361,6 +440,43 @@ declare namespace Eps {
 		 * 部门权限
 		 */
 		departmentIdList?: any;
+
+		/**
+		 * 创建时间
+		 */
+		createTime?: string;
+
+		/**
+		 * 更新时间
+		 */
+		updateTime?: string;
+
+		/**
+		 * 任意键值
+		 */
+		[key: string]: any;
+	}
+
+	interface BaseSysTenantEntity {
+		/**
+		 * ID
+		 */
+		id?: number;
+
+		/**
+		 * 租户名称
+		 */
+		name?: string;
+
+		/**
+		 * 到期日
+		 */
+		expireDate?: Date;
+
+		/**
+		 * 备注
+		 */
+		remark?: string;
 
 		/**
 		 * 创建时间
@@ -1758,6 +1874,16 @@ declare namespace Eps {
 		list: AuditLogEntity[];
 	}
 
+	interface BaseSysChain_headquartersPageResponse {
+		pagination: PagePagination;
+		list: BaseSysChainHeadquartersEntity[];
+	}
+
+	interface BaseSysChain_storePageResponse {
+		pagination: PagePagination;
+		list: BaseSysChainStoreEntity[];
+	}
+
 	interface BaseSysLogPageResponse {
 		pagination: PagePagination;
 		list: BaseSysLogEntity[];
@@ -1776,6 +1902,11 @@ declare namespace Eps {
 	interface BaseSysRolePageResponse {
 		pagination: PagePagination;
 		list: BaseSysRoleEntity[];
+	}
+
+	interface BaseSysTenantPageResponse {
+		pagination: PagePagination;
+		list: BaseSysTenantEntity[];
 	}
 
 	interface BaseSysUserPageResponse {
@@ -2115,6 +2246,11 @@ declare namespace Eps {
 		phoneLogin(data?: any): Promise<any>;
 
 		/**
+		 * 租户列表
+		 */
+		tenantList(data?: any): Promise<any>;
+
+		/**
 		 * 验证码
 		 */
 		captcha(data?: any): Promise<any>;
@@ -2140,6 +2276,7 @@ declare namespace Eps {
 		permission: {
 			refreshToken: string;
 			phoneLogin: string;
+			tenantList: string;
 			captcha: string;
 			login: string;
 			html: string;
@@ -2152,10 +2289,127 @@ declare namespace Eps {
 		_permission: {
 			refreshToken: boolean;
 			phoneLogin: boolean;
+			tenantList: boolean;
 			captcha: boolean;
 			login: boolean;
 			html: boolean;
 			eps: boolean;
+		};
+
+		request: Request;
+	}
+
+	interface BaseSysChain_headquarters {
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<BaseSysChainHeadquartersEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<BaseSysChainHeadquartersEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<BaseSysChain_headquartersPageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			delete: string;
+			update: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			delete: boolean;
+			update: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
+	}
+
+	interface BaseSysChain_store {
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<BaseSysChainStoreEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<BaseSysChainStoreEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<BaseSysChain_storePageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			delete: string;
+			update: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			delete: boolean;
+			update: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
 		};
 
 		request: Request;
@@ -2409,6 +2663,64 @@ declare namespace Eps {
 		 * 分页查询
 		 */
 		page(data?: any): Promise<BaseSysRolePageResponse>;
+
+		/**
+		 * 新增
+		 */
+		add(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: {
+			delete: string;
+			update: string;
+			info: string;
+			list: string;
+			page: string;
+			add: string;
+		};
+
+		/**
+		 * 权限状态
+		 */
+		_permission: {
+			delete: boolean;
+			update: boolean;
+			info: boolean;
+			list: boolean;
+			page: boolean;
+			add: boolean;
+		};
+
+		request: Request;
+	}
+
+	interface BaseSysTenant {
+		/**
+		 * 删除
+		 */
+		delete(data?: any): Promise<any>;
+
+		/**
+		 * 修改
+		 */
+		update(data?: any): Promise<any>;
+
+		/**
+		 * 单个信息
+		 */
+		info(data?: any): Promise<BaseSysTenantEntity>;
+
+		/**
+		 * 列表查询
+		 */
+		list(data?: any): Promise<BaseSysTenantEntity[]>;
+
+		/**
+		 * 分页查询
+		 */
+		page(data?: any): Promise<BaseSysTenantPageResponse>;
 
 		/**
 		 * 新增
@@ -3905,11 +4217,14 @@ declare namespace Eps {
 			comm: BaseComm;
 			open: BaseOpen;
 			sys: {
+				chain_headquarters: BaseSysChain_headquarters;
+				chain_store: BaseSysChain_store;
 				department: BaseSysDepartment;
 				log: BaseSysLog;
 				menu: BaseSysMenu;
 				param: BaseSysParam;
 				role: BaseSysRole;
+				tenant: BaseSysTenant;
 				user: BaseSysUser;
 			};
 		};
