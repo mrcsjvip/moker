@@ -1,0 +1,246 @@
+<template>
+	<cl-page>
+		<cl-topbar title="店长工作台" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view class="date-bar">
+				<cl-text :size="14" color="info">{{ todayDate }}</cl-text>
+			</view>
+
+			<view class="card stats-card shadow-card">
+				<view class="stats-row">
+					<view class="stat-item">
+						<cl-text :size="20" :pt="{ className: 'font-bold text-brand' }">{{ stats.appointments }}</cl-text>
+						<cl-text :size="12" color="info">当日预约</cl-text>
+					</view>
+					<view class="stat-item">
+						<cl-text :size="20" :pt="{ className: 'font-bold text-brand' }">{{ stats.arrived }}</cl-text>
+						<cl-text :size="12" color="info">已到店</cl-text>
+					</view>
+					<view class="stat-item">
+						<cl-text :size="20" :pt="{ className: 'font-bold text-brand' }">{{ stats.doing }}</cl-text>
+						<cl-text :size="12" color="info">施工中</cl-text>
+					</view>
+					<view class="stat-item">
+						<cl-text :size="20" :pt="{ className: 'font-bold text-brand' }">{{ stats.done }}</cl-text>
+						<cl-text :size="12" color="info">已完成</cl-text>
+					</view>
+				</view>
+				<view class="stats-row mt-3">
+					<view class="stat-item">
+						<cl-text :size="18" :pt="{ className: 'font-bold' }">¥{{ stats.revenue }}</cl-text>
+						<cl-text :size="12" color="info">当日营业额</cl-text>
+					</view>
+				</view>
+			</view>
+
+			<view class="quick-entries">
+				<view class="entry" @tap="toAppointments">
+					<cl-icon name="calendar-todo-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">预约列表</cl-text>
+				</view>
+				<view class="entry" @tap="toStaff">
+					<cl-icon name="team-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">排班/员工</cl-text>
+				</view>
+				<view class="entry" @tap="toStats">
+					<cl-icon name="bar-chart-box-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">数据概览</cl-text>
+				</view>
+				<view class="entry" @tap="toMarketing">
+					<cl-icon name="gift-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">营销发放</cl-text>
+				</view>
+				<view class="entry" @tap="toStoreSet">
+					<cl-icon name="store-2-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">门店设置</cl-text>
+				</view>
+			</view>
+
+			<view class="section-title">
+				<cl-text :size="14" :pt="{ className: 'font-bold' }">今日预约</cl-text>
+			</view>
+			<view v-if="loading" class="empty-bar">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else class="list">
+				<view class="card list-card shadow-card" v-for="item in todayList" :key="item.id" @tap="viewAppointment(item)">
+					<view class="flex flex-row items-center">
+						<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.plate }} · {{ item.serviceName }}</cl-text>
+						<cl-tag :type="item.statusType" size="mini" class="ml-auto">{{ item.statusText }}</cl-tag>
+					</view>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.time }} · 技师：{{ item.tech }}</cl-text>
+					<view class="op-row mt-2">
+						<cl-button size="mini" @tap.stop="assignTech(item)">改派技师</cl-button>
+						<cl-button size="mini" v-if="item.canCancel" @tap.stop="cancelApp(item)">取消预约</cl-button>
+					</view>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const todayDate = ref("");
+const loading = ref(false);
+const stats = ref({
+	appointments: 0,
+	arrived: 0,
+	doing: 0,
+	done: 0,
+	revenue: "0"
+});
+
+const todayList = ref<ManagerTodayItem[]>([]);
+
+type ManagerTodayItem = {
+	id: number;
+	plate: string;
+	serviceName: string;
+	time: string;
+	tech: string;
+	statusText: string;
+	statusType: string;
+	canCancel?: boolean;
+};
+
+function formatToday() {
+	const d = new Date();
+	const y = d.getFullYear();
+	const m = String(d.getMonth() + 1).padStart(2, "0");
+	const day = String(d.getDate()).padStart(2, "0");
+	todayDate.value = `${y}-${m}-${day} 今天`;
+}
+
+async function loadData() {
+	loading.value = true;
+	formatToday();
+	try {
+		const [statsRes, listRes] = await Promise.all([
+			request({ url: "/app/appointment/employee/todayStats", method: "GET" }),
+			request({ url: "/app/appointment/employee/managerTodayList", method: "GET" })
+		]);
+		const s = statsRes?.data ?? {};
+		stats.value = {
+			appointments: s.todayCount ?? 0,
+			arrived: s.arrivedCount ?? 0,
+			doing: s.doingCount ?? 0,
+			done: s.doneCount ?? 0,
+			revenue: s.revenue ?? "0"
+		};
+		const list = Array.isArray(listRes?.data) ? listRes.data : [];
+		todayList.value = list.map((item: Record<string, unknown>) => ({
+			id: Number(item.appointmentId ?? item.id),
+			plate: String(item.plate ?? ""),
+			serviceName: String(item.serviceName ?? ""),
+			time: String(item.time ?? ""),
+			tech: String(item.tech ?? "—"),
+			statusText: String(item.statusText ?? ""),
+			statusType: String(item.statusType ?? "info"),
+			canCancel: item.status === "pending"
+		}));
+	} catch {
+		todayList.value = [];
+	}
+	loading.value = false;
+}
+
+onMounted(() => {
+	loadData();
+});
+
+function toAppointments() {
+	router.to("/pages/employee/manager-appointments");
+}
+
+function toStaff() {
+	router.to("/pages/employee/manager-staff");
+}
+
+function toStats() {
+	router.to("/pages/employee/manager-stats");
+}
+
+function toMarketing() {
+	ui.showToast({ message: "营销发放" });
+}
+
+function toStoreSet() {
+	ui.showToast({ message: "门店设置（商家端）" });
+}
+
+function viewAppointment(item: ManagerTodayItem) {
+	ui.showToast({ message: "查看预约" });
+}
+
+function assignTech(item: ManagerTodayItem) {
+	ui.showToast({ message: "改派技师" });
+}
+
+function cancelApp(item: ManagerTodayItem) {
+	ui.showToast({ message: "取消预约" });
+}
+</script>
+
+<style lang="scss" scoped>
+.date-bar {
+	@apply mb-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.stats-card {
+	@apply mb-4;
+}
+
+.stats-row {
+	@apply flex flex-row flex-wrap gap-4;
+}
+
+.stat-item {
+	@apply flex flex-col items-center flex-1 min-w-[60px];
+}
+
+.text-brand {
+	color: #0066b1;
+}
+
+.quick-entries {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+	@apply mb-4;
+}
+
+.entry {
+	@apply bg-white rounded-xl py-4 flex flex-col items-center;
+}
+
+.section-title {
+	@apply mb-3;
+}
+
+.empty-bar {
+	@apply py-4;
+}
+
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.list-card {
+	@apply mb-0;
+}
+
+.op-row {
+	@apply flex flex-row gap-2 flex-wrap;
+}
+</style>

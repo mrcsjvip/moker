@@ -1,2 +1,2 @@
-@import "./iconfont/index.scss";
-@import "./remixicon/index.scss";
+@use "./iconfont/index.scss" as *;
+@use "./remixicon/index.scss" as *;

@@ -1,6 +1,6 @@
 import { watch } from "vue";
 import { scroller } from "./scroller";
-import { initTheme, setH5 } from "./theme";
+import { initTheme, setH5, setMpTheme } from "./theme";
 import { locale } from "./locale";
 import { updateTitle } from "./page";
 
@@ -17,6 +17,10 @@ export function coolPlugin(app: VueApp) {
 			setTimeout(() => {
 				setH5();
 			}, 0);
+			// #endif
+
+			// #ifdef MP
+			setMpTheme();
 			// #endif
 
 			// 触发 onShow 事件

@@ -15,14 +15,15 @@
 		<view class="p-3 pt-2 pb-4 w-full" v-if="captcha.visible">
 			<view class="flex flex-row items-center">
 				<cl-input
-					v-model="code"
-					:placeholder="t('验证码')"
+					:model-value="code"
+					:placeholder="t('图形验证码')"
 					:maxlength="4"
 					autofocus
 					:clearable="false"
 					:pt="{
 						className: 'flex-1 mr-2 !h-[35px]'
 					}"
+					@input="onCaptchaInput"
 					@confirm="send"
 				></cl-input>
 
@@ -98,6 +99,15 @@ const btnText = computed(() =>
 
 const code = ref("");
 const captchaId = ref("");
+
+// 图形验证码输入：允许字母和数字，最多 4 位（不再只保留数字，避免先输入的字母被清除）
+function onCaptchaInput(e: { detail?: { value?: string } } | string) {
+	const raw =
+		typeof e === "string"
+			? e
+			: (e && typeof e === "object" && (e as { detail?: { value?: string } }).detail?.value) ?? "";
+	code.value = String(raw).replace(/[^a-zA-Z0-9]/g, "").slice(0, 4);
+}
 
 // 清空
 function clear() {

@@ -1,0 +1,99 @@
+<template>
+	<cl-page>
+		<cl-topbar title="数据概览" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">今日核心指标</cl-text>
+				<view class="stats-grid">
+					<view class="stat-box">
+						<cl-text :size="24" :pt="{ className: 'font-bold text-brand' }">¥{{ stats.revenue }}</cl-text>
+						<cl-text :size="12" color="info">当日营业额</cl-text>
+					</view>
+					<view class="stat-box">
+						<cl-text :size="24" :pt="{ className: 'font-bold text-brand' }">{{ stats.orders }}</cl-text>
+						<cl-text :size="12" color="info">单量</cl-text>
+					</view>
+					<view class="stat-box">
+						<cl-text :size="24" :pt="{ className: 'font-bold text-brand' }">¥{{ stats.avgPrice }}</cl-text>
+						<cl-text :size="12" color="info">客单价</cl-text>
+					</view>
+				</view>
+			</view>
+
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">员工绩效排行（今日）</cl-text>
+				<view class="rank-list">
+					<view class="rank-item flex flex-row items-center" v-for="(item, i) in rankList" :key="item.id">
+						<cl-text :size="14" :pt="{ className: 'w-6' }">{{ i + 1 }}</cl-text>
+						<cl-text :size="14">{{ item.name }}</cl-text>
+						<cl-text :size="14" color="info" class="ml-auto">完成 {{ item.count }} 单</cl-text>
+					</view>
+				</view>
+			</view>
+
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">热门服务 TOP</cl-text>
+				<view class="top-list">
+					<view class="top-item flex flex-row items-center" v-for="(item, i) in topService" :key="item.name">
+						<cl-text :size="14" :pt="{ className: 'w-6' }">{{ i + 1 }}</cl-text>
+						<cl-text :size="14">{{ item.name }}</cl-text>
+						<cl-text :size="12" color="info" class="ml-auto">{{ item.count }} 单</cl-text>
+					</view>
+				</view>
+			</view>
+
+			<cl-text :size="12" color="info" :pt="{ className: 'block mt-2' }">详细报表请在商家端后台查看</cl-text>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+
+const stats = ref({
+	revenue: "12800",
+	orders: 8,
+	avgPrice: "1600"
+});
+
+const rankList = ref([
+	{ id: 1, name: "李四", count: 3 },
+	{ id: 2, name: "王五", count: 2 },
+	{ id: 3, name: "赵六", count: 1 }
+]);
+
+const topService = ref([
+	{ name: "隐形车衣", count: 4 },
+	{ name: "玻璃防爆膜", count: 2 },
+	{ name: "改色膜", count: 2 }
+]);
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.stats-grid {
+	@apply flex flex-row gap-4 flex-wrap;
+}
+
+.stat-box {
+	@apply flex flex-col flex-1 min-w-[80px];
+}
+
+.text-brand {
+	color: #0066b1;
+}
+
+.rank-list,
+.top-list {
+	@apply flex flex-col gap-2;
+}
+
+.rank-item,
+.top-item {
+	@apply py-2 border-b border-solid border-surface-200;
+}
+</style>

@@ -1,7 +1,11 @@
 <template>
 	<cl-page>
+		<cl-topbar title="选择门店" :show-back="true" safe-area-top></cl-topbar>
 		<view class="p-3">
-			<view class="store-card" v-for="item in stores" :key="item.name">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view class="store-card shadow-card" v-for="item in stores" :key="item.id">
 				<view class="flex flex-row items-center">
 					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
 					<cl-tag class="ml-auto" type="success" size="mini">营业中</cl-tag>
@@ -9,7 +13,7 @@
 				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.address }}</cl-text>
 				<view class="flex flex-row mt-3">
 					<cl-button size="mini">导航</cl-button>
-					<cl-button size="mini" type="primary" class="ml-2">预约</cl-button>
+					<cl-button size="mini" type="primary" class="ml-2" @tap="toAppointment(item)">预约</cl-button>
 				</view>
 			</view>
 		</view>
@@ -17,16 +21,40 @@
 </template>
 
 <script lang="ts" setup>
-const stores = [
-	{
-		name: "深圳旗舰店",
-		address: "深圳市南山区科技大道 88 号"
-	},
-	{
-		name: "深圳宝安店",
-		address: "深圳市宝安区创业一路 168 号"
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+
+type StoreItem = { id: number; name: string; address?: string };
+const stores = ref<StoreItem[]>([]);
+const loading = ref(true);
+const queryServiceId = ref("");
+const queryServiceName = ref("");
+
+onMounted(async () => {
+	const q = router.query() as Record<string, string | undefined>;
+	queryServiceId.value = q?.serviceId ?? "";
+	queryServiceName.value = q?.serviceName ?? "";
+	try {
+		const res = await request({ url: "/app/store/list", method: "GET" });
+		const raw = res?.data;
+		const list = Array.isArray(raw) ? raw : (raw?.list ?? []);
+		stores.value = (Array.isArray(list) ? list : []).map((s: any) => ({
+			id: s.id,
+			name: s.name ?? "—",
+			address: s.address ?? ""
+		}));
+	} catch {
+		stores.value = [];
 	}
-];
+	loading.value = false;
+});
+
+function toAppointment(store: StoreItem) {
+	let url = "/pages/biz/appointment?storeId=" + store.id + "&storeName=" + encodeURIComponent(store.name) + "&storeAddress=" + encodeURIComponent(store.address || "");
+	if (queryServiceId.value) url += "&serviceId=" + queryServiceId.value;
+	if (queryServiceName.value) url += "&serviceName=" + queryServiceName.value;
+	router.to(url);
+}
 </script>
 
 <style lang="scss" scoped>

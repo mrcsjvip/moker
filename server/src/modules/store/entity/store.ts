@@ -29,4 +29,7 @@ export class StoreEntity extends BaseEntity {
 
   @Column({ comment: '状态 0-停用 1-启用', default: 1 })
   status: number;
+
+  @Column({ comment: '联系电话（前台）', length: 20, nullable: true })
+  contactPhone: string;
 }

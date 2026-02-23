@@ -15,41 +15,12 @@
 		</cl-topbar>
 
 		<view class="p-3">
-			<view class="hero">
-				<view class="hero-content">
-					<cl-text :size="18" :pt="{ className: 'font-bold' }">贴膜门店管理系统</cl-text>
-					<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">
-						4S级施工流程 · 透明报价 · 施工进度可视
-					</cl-text>
-					<cl-button class="mt-3" type="primary" round @tap="toPage('/pages/biz/appointment')">
-						立即预约
-					</cl-button>
-				</view>
-				<cl-image
-					class="hero-img"
-					src="/static/logo.png"
-					:width="48"
-					:height="48"
-					:show-loading="false"
-				></cl-image>
+			<!-- C-01 Banner 轮播 -->
+			<view class="banner-wrap">
+				<cl-banner :list="bannerList" :height="160"></cl-banner>
 			</view>
 
-			<view class="store-card">
-				<view class="flex flex-row items-center">
-					<cl-text :size="14" :pt="{ className: 'font-bold' }">旗舰店 · 4S标准施工</cl-text>
-					<cl-tag class="ml-2" type="primary" size="mini">营业中</cl-tag>
-				</view>
-				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">
-					深圳市南山区科技大道 88 号 · 09:00-21:00
-				</cl-text>
-				<view class="flex flex-row mt-3">
-					<cl-button size="mini" @tap="toPage('/pages/biz/store')">门店导航</cl-button>
-					<cl-button size="mini" type="primary" class="ml-2" @tap="toPage('/pages/biz/appointment')">
-						预约进店
-					</cl-button>
-				</view>
-			</view>
-
+			<!-- 快捷入口：预约贴膜、服务方案、优惠券、我的质保 -->
 			<view class="grid">
 				<view
 					class="grid-item"
@@ -57,31 +28,34 @@
 					:key="item.label"
 					@tap="toPage(item.path)"
 				>
-					<cl-icon :name="item.icon" :size="18"></cl-icon>
+					<cl-icon :name="item.icon" :size="24"></cl-icon>
 					<cl-text :size="12" :pt="{ className: 'mt-2' }">{{ item.label }}</cl-text>
 				</view>
 			</view>
 
-			<view class="section-title">
-				<cl-text :size="14" :pt="{ className: 'font-bold' }">热门服务</cl-text>
-				<cl-text :size="12" color="info">精选施工方案</cl-text>
+			<!-- 车辆卡片 -->
+			<view class="vehicle-card shadow-card" @tap="toPage('/pages/biz/workorder')">
+				<view class="flex flex-row items-center">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">车型：{{ vehicleInfo.model || '未绑定' }}</cl-text>
+					<cl-text :size="12" color="info" :pt="{ className: 'ml-2' }">车牌：{{ vehicleInfo.plate || '京A·xxxxx' }}</cl-text>
+				</view>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">
+					下次保养：{{ vehicleInfo.nextMaintain || 'xxxx km / 日期' }}
+				</cl-text>
+				<view class="flex flex-row items-center mt-2">
+					<cl-text :size="12" :pt="{ className: 'text-brand' }">服务历史 ></cl-text>
+				</view>
 			</view>
 
-			<view class="service-list">
-				<view class="service-card" v-for="item in services" :key="item.name">
-					<view class="flex flex-row items-center">
-						<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
-						<cl-tag class="ml-auto" type="success" size="mini">{{ item.duration }}分钟</cl-tag>
-					</view>
-					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.desc }}</cl-text>
-					<view class="flex flex-row items-center mt-3">
-						<cl-text :size="16" :pt="{ className: 'font-bold text-primary-500' }">
-							¥{{ item.price }}
-						</cl-text>
-						<cl-button class="ml-auto" size="mini" type="primary" @tap="toPage('/pages/biz/appointment')">
-							预约
-						</cl-button>
-					</view>
+			<!-- 附近门店 -->
+			<view class="section-title">
+				<cl-text :size="18" :pt="{ className: 'font-bold' }">附近门店</cl-text>
+			</view>
+			<view class="store-list">
+				<view class="store-card shadow-card" v-for="s in nearbyStores" :key="s.id" @tap="toStore(s)">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ s.name }}</cl-text>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">{{ s.address }}</cl-text>
+					<cl-text :size="12" color="info">距离 {{ s.distance }} · {{ s.phone }}</cl-text>
 				</view>
 			</view>
 		</view>
@@ -90,26 +64,42 @@
 	</cl-page>
 </template>
 
-<script lang="ts" setup>
+<script setup>
+import { ref } from "vue";
 import { router } from "@/.cool";
 import { config } from "@/config";
 import CustomTabbar from "./components/tabbar.uvue";
 
+const bannerList = ref([
+	"https://unix.cool-js.com/images/demo/bg1.png",
+	"https://unix.cool-js.com/images/demo/bg2.png",
+	"https://unix.cool-js.com/images/demo/bg3.png"
+]);
+
 const quickActions = [
-	{ label: "我的工单", icon: "clipboard-line", path: "/pages/biz/workorder" },
-	{ label: "预约进店", icon: "calendar-check-line", path: "/pages/biz/appointment" },
-	{ label: "门店导航", icon: "map-pin-line", path: "/pages/biz/store" },
-	{ label: "优惠券", icon: "price-tag-3-line", path: "/pages/biz/coupon" }
+	{ label: "预约贴膜", icon: "car-line", path: "/pages/biz/service-select" },
+	{ label: "服务方案", icon: "file-list-3-line", path: "/pages/biz/service-select" },
+	{ label: "优惠券", icon: "price-tag-3-line", path: "/pages/biz/coupon" },
+	{ label: "我的质保", icon: "shield-check-line", path: "/pages/biz/workorder" }
 ];
 
-const services = [
-	{ name: "隐形车衣", duration: 180, price: "1980", desc: "全车保护，耐磨抗刮，提升亮度" },
-	{ name: "玻璃防爆膜", duration: 90, price: "680", desc: "隔热防晒，提升舒适与安全" },
-	{ name: "内饰镀晶", duration: 120, price: "980", desc: "持久抗污，深层养护" }
-];
+const vehicleInfo = ref({
+	model: "",
+	plate: "",
+	nextMaintain: ""
+});
 
-function toPage(path: string) {
+const nearbyStores = ref([
+	{ id: 1, name: "XX贴膜旗舰店", address: "深圳市南山区科技大道88号", distance: "2.3km", phone: "400-xxx-xxxx" },
+	{ id: 2, name: "XX贴膜分店", address: "深圳市福田区车公庙路1号", distance: "5.1km", phone: "400-xxx-xxxx" }
+]);
+
+function toPage(path) {
 	router.to(path);
+}
+
+function toStore(_s) {
+	router.to("/pages/biz/store");
 }
 </script>
 
@@ -122,40 +112,39 @@ function toPage(path: string) {
 	@apply flex flex-row items-center bg-white rounded-full px-3 py-1;
 }
 
-.hero {
-	@apply rounded-2xl p-4 text-white mb-4 flex flex-row items-center;
-	background: linear-gradient(135deg, #1f2937, #111827);
-}
-
-.hero-content {
-	@apply flex-1;
-}
-
-.hero-img {
-	@apply bg-white rounded-2xl p-2;
-}
-
-.store-card {
-	@apply bg-white rounded-2xl p-4 mb-4;
+.banner-wrap {
+	@apply rounded-xl overflow-hidden mb-4;
+	background-color: #0066b1;
 }
 
 .grid {
-	@apply grid grid-cols-4 gap-3 mb-4;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+	@apply mb-4;
 }
 
 .grid-item {
 	@apply bg-white rounded-xl py-4 flex flex-col items-center;
 }
 
-.section-title {
-	@apply flex flex-row items-center justify-between mb-3;
+.vehicle-card {
+	@apply bg-white rounded-xl p-4 mb-4;
 }
 
-.service-list {
+.section-title {
+	@apply mb-3;
+}
+
+.store-list {
 	@apply flex flex-col gap-3 mb-6;
 }
 
-.service-card {
-	@apply bg-white rounded-2xl p-4;
+.store-card {
+	@apply bg-white rounded-xl p-4;
+}
+
+.text-brand {
+	color: #0066b1;
 }
 </style>

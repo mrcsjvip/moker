@@ -19,11 +19,47 @@
 				}}</cl-text>
 			</view>
 
+			<!-- 扫码进入：回显当前门店（不展示选择器） -->
+			<view
+				v-if="tenantFromQr && selectedTenant != null"
+				class="mb-4 rounded-xl border border-solid border-primary/30 bg-primary/5 p-3"
+			>
+				<cl-text color="info" :size="12">{{ t("您正在登录以下门店") }}</cl-text>
+				<cl-text :size="16" :pt="{ className: 'font-bold mt-1' }">{{
+					selectedTenant.name
+				}}</cl-text>
+			</view>
+
+			<!-- 非扫码：租户选择（多租户时展示） -->
+			<view
+				v-else-if="tenantList.length > 0"
+				class="mb-4 rounded-xl border border-solid border-surface-200 bg-surface-50 p-3"
+			>
+				<cl-text color="info" :size="12">{{ t("请选择所属租户/门店") }}</cl-text>
+				<picker
+					mode="selector"
+					:range="tenantList"
+					range-key="name"
+					:value="tenantIndex"
+					@change="onTenantChange"
+				>
+					<view
+						class="mt-2 flex flex-row items-center justify-between rounded-lg bg-white px-3 py-2"
+					>
+						<cl-text>{{ selectedTenant?.name ?? t("请选择") }}</cl-text>
+						<cl-icon name="arrow-right-s-line" :size="16" color="info"></cl-icon>
+					</view>
+				</picker>
+			</view>
+
 			<!-- 手机号登录 -->
 			<login-phone :form="form" @success="toLogin"></login-phone>
 
 			<!-- 微信登录 -->
-			<login-wx :ref="refs.set('loginWx')"></login-wx>
+			<login-wx
+				:ref="refs.set('loginWx')"
+				:tenant-id="form.tenantId ?? undefined"
+			></login-wx>
 
 			<!-- 协议 -->
 			<view class="mt-6 flex flex-row flex-wrap items-center justify-center">
@@ -78,13 +114,42 @@
 			</view>
 		</view>
 	</cl-page>
+
+	<cl-popup v-model="roleSelectVisible" direction="bottom" :title="t('选择登录端')" size="90%">
+		<view class="p-4 pt-0">
+			<cl-text color="info">{{ t("检测到你有多个可进入端口，请选择本次登录身份") }}</cl-text>
+
+			<view class="mt-4 flex flex-col gap-3">
+				<cl-button round @tap="enterByPortal('user')">{{ t("用户端登录") }}</cl-button>
+				<cl-button
+					round
+					v-if="roleAccess.canEmployee && !roleAccess.canManager"
+					@tap="enterByPortal('employee')"
+				>
+					{{ t("员工端登录") }}
+				</cl-button>
+				<cl-button round v-if="roleAccess.canManager" @tap="enterByPortal('manager')">
+					{{ t("店长端登录") }}
+				</cl-button>
+			</view>
+		</view>
+	</cl-popup>
 </template>
 
 <script setup lang="ts">
 import { config } from "@/config";
-import { isDark, parse, router, useRefs, useStore, type Token, t } from "@/.cool";
-import { provide, reactive, ref } from "vue";
-import type { LoginForm } from "./types";
+import {
+	isDark,
+	parse,
+	request,
+	router,
+	useRefs,
+	useStore,
+	type Token,
+	t
+} from "@/.cool";
+import { onMounted, provide, reactive, ref } from "vue";
+import type { LoginForm, TenantOption } from "./types";
 import { useUi } from "@/uni_modules/cool-ui";
 import LoginPhone from "./components/login/phone.uvue";
 import LoginWx from "./components/login/wx.uvue";
@@ -96,17 +161,135 @@ const refs = useRefs();
 // 表单
 const form = reactive<LoginForm>({
 	phone: "18000000000",
-	smsCode: "6666"
+	smsCode: "123456",
+	tenantId: undefined
+});
+
+// 租户列表（多租户时由后端返回）
+const tenantList = ref<TenantOption[]>([]);
+const tenantIndex = ref(0);
+const selectedTenant = ref<TenantOption | null>(null);
+/** 是否为扫码进入（门店二维码带 tenantId），此时只回显不展示选择器 */
+const tenantFromQr = ref(false);
+
+function onTenantChange(e: { detail?: { value?: string } }) {
+	const idx = Number((e.detail?.value ?? 0));
+	tenantIndex.value = idx;
+	const item = tenantList.value[idx];
+	selectedTenant.value = item != null ? item : null;
+	form.tenantId = item?.id ?? null;
+}
+
+/** 从扫码 scene 或 URL 中解析租户ID（小程序码 scene 建议传数字如 "5" 或 "t_5"） */
+function resolveTenantIdFromEntry(): number | null {
+	const q = router.query() as UTSJSONObject;
+	const fromQuery = q != null ? q["tenantId"] : null;
+	if (fromQuery != null) {
+		const n = Number(fromQuery);
+		if (!Number.isNaN(n) && n > 0) return n;
+	}
+	// #ifdef MP-WEIXIN || MP
+	const launchOpts = uni.getLaunchOptionsSync();
+	const scene = launchOpts != null ? (launchOpts["scene"] as string | null) : null;
+	if (scene != null && String(scene).length > 0) {
+		const s = String(scene);
+		const num = parseInt(s, 10);
+		if (!Number.isNaN(num) && num > 0) return num;
+		if (s.startsWith("t_")) {
+			const num2 = parseInt(s.substring(2), 10);
+			if (!Number.isNaN(num2) && num2 > 0) return num2;
+		}
+	}
+	// #endif
+	return null;
+}
+
+onMounted(async () => {
+	const tenantIdFromEntry = resolveTenantIdFromEntry();
+
+	if (tenantIdFromEntry != null) {
+		try {
+			const res = await request({
+				url: `/app/user/login/tenantInfo?tenantId=${tenantIdFromEntry}`,
+				method: "GET"
+			});
+			const data = res?.data;
+			if (data != null && data["id"] != null && data["name"] != null) {
+				selectedTenant.value = {
+					id: Number(data["id"]),
+					name: String(data["name"])
+				};
+				form.tenantId = Number(data["id"]);
+				tenantFromQr.value = true;
+				return;
+			}
+		} catch {
+			// 门店不存在或已过期， fallback 到列表选择
+		}
+	}
+
+	try {
+		const res = await request({
+			url: "/app/user/login/tenantList",
+			method: "GET"
+		});
+		const list = Array.isArray(res?.data) ? res.data : [];
+		tenantList.value = list;
+		if (list.length > 0) {
+			tenantIndex.value = 0;
+			selectedTenant.value = list[0];
+			form.tenantId = list[0].id;
+		}
+	} catch {
+		// 未开启多租户或接口不可用时忽略
+	}
 });
 
 // 是否同意
 const agree = ref(false);
 
+const roleSelectVisible = ref(false);
+const roleAccess = reactive({
+	canEmployee: false,
+	canManager: false
+});
+
 // 登录成功
 async function toLogin(res: any) {
 	user.setToken(parse<Token>(res)!);
-	user.get();
-	router.nextLogin();
+	await user.get();
+	await routeAfterLogin();
+}
+
+async function routeAfterLogin() {
+	const access = user.getRoleAccess();
+	roleAccess.canEmployee = access.canEmployee;
+	roleAccess.canManager = access.canManager;
+
+	// 无员工/店长权限，直接进用户端
+	if (!access.canEmployee && !access.canManager) {
+		enterByPortal("user");
+		return;
+	}
+
+	// 有角色权限，弹出选择
+	roleSelectVisible.value = true;
+}
+
+function enterByPortal(portal: "user" | "employee" | "manager") {
+	roleSelectVisible.value = false;
+	user.setPortal(portal);
+
+	const pathMap = {
+		user: "/pages/index/home",
+		employee: "/pages/employee/index",
+		manager: "/pages/employee/manager-index"
+	};
+
+	router.push({
+		path: pathMap[portal],
+		mode: "reLaunch"
+	});
 }
 
 // 跳转文档

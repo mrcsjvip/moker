@@ -4,8 +4,11 @@ import { InjectEntityModel } from '@midwayjs/typeorm';
 import * as md5 from 'md5';
 import { Equal, Repository } from 'typeorm';
 import { v1 as uuid } from 'uuid';
+import { noTenant } from '../../base/db/tenant';
+import { BaseSysTenantEntity } from '../../base/entity/sys/tenant';
 import { PluginService } from '../../plugin/service/info';
 import { UserInfoEntity } from '../entity/info';
+import { UserAccountBindService } from './account_bind';
 import { UserSmsService } from './sms';
 import { UserWxService } from './wx';
 
@@ -25,6 +28,12 @@ export class UserInfoService extends BaseService {
 
   @Inject()
   userWxService: UserWxService;
+
+  @Inject()
+  userAccountBindService: UserAccountBindService;
+
+  @InjectEntityModel(BaseSysTenantEntity)
+  baseSysTenantEntity: Repository<BaseSysTenantEntity>;
 
   /**
    * 绑定小程序手机号
@@ -46,8 +55,31 @@ export class UserInfoService extends BaseService {
    */
   async person(id) {
     const info = await this.userInfoEntity.findOneBy({ id: Equal(id) });
+    if (!info) {
+      return null;
+    }
+    const { isEmployee, isManager } =
+      await this.userAccountBindService.getRoleAccessByAppUserId(id);
+
     delete info.password;
-    return info;
+
+    let tenantName: string | null = null;
+    if (info.tenantId != null) {
+      const tenant = await noTenant(this.ctx, () =>
+        this.baseSysTenantEntity.findOne({
+          where: { id: info.tenantId },
+          select: ['name'],
+        })
+      );
+      tenantName = tenant?.name ?? null;
+    }
+
+    return {
+      ...info,
+      isEmployee,
+      isManager,
+      tenantName,
+    };
   }
 
   /**

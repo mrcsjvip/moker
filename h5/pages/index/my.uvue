@@ -46,188 +46,61 @@
 				</view>
 			</view>
 
-			<cl-row
-				:pt="{
-					className: 'pt-3 pb-6'
-				}"
-			>
-				<cl-col :span="6">
-					<view class="flex flex-col items-center justify-center">
-						<cl-rolling-number :size="18" :value="171"></cl-rolling-number>
-						<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-							t("总点击")
-						}}</cl-text>
-					</view>
-				</cl-col>
-
-				<cl-col :span="6">
-					<view class="flex flex-col items-center justify-center">
-						<cl-rolling-number :size="18" :value="24"></cl-rolling-number>
-						<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-							t("赞")
-						}}</cl-text>
-					</view>
-				</cl-col>
-
-				<cl-col :span="6">
-					<view class="flex flex-col items-center justify-center">
-						<cl-rolling-number :size="18" :value="89"></cl-rolling-number>
-						<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-							t("收藏")
-						}}</cl-text>
-					</view>
-				</cl-col>
-
-				<cl-col :span="6">
-					<view class="flex flex-col items-center justify-center">
-						<cl-rolling-number :size="18" :value="653"></cl-rolling-number>
-						<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-							t("粉丝")
-						}}</cl-text>
-					</view>
-				</cl-col>
-			</cl-row>
-
-			<cl-row :gutter="20" :pt="{ className: 'mb-3' }">
-				<cl-col :span="12">
-					<view class="bg-white dark:!bg-surface-800 p-4 rounded-2xl flex flex-row">
-						<view class="flex flex-col mr-auto">
-							<cl-text
-								ellipsis
-								:pt="{
-									className: '!w-[90px]'
-								}"
-								>{{ t("接单模式") }}</cl-text
-							>
-							<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-								t("已关闭")
-							}}</cl-text>
-						</view>
-
-						<cl-switch></cl-switch>
-					</view>
-				</cl-col>
-
-				<cl-col :span="12">
-					<view class="bg-white dark:!bg-surface-800 p-4 rounded-2xl flex flex-row">
-						<view class="flex flex-col mr-auto">
-							<cl-text
-								ellipsis
-								:pt="{
-									className: '!w-[90px]'
-								}"
-								>{{ t("消息通知") }}</cl-text
-							>
-							<cl-text :size="12" :pt="{ className: 'mt-1' }" color="info">{{
-								t("已关闭")
-							}}</cl-text>
-						</view>
-
-						<cl-switch></cl-switch>
-					</view>
-				</cl-col>
-			</cl-row>
-
-			<view class="bg-white dark:!bg-surface-800 py-5 rounded-2xl mb-3 h-[80px]">
-				<cl-row :pt="{ className: 'overflow-visible' }">
-					<cl-col :span="6">
-						<view class="flex flex-col justify-center items-center px-2">
-							<cl-icon name="money-cny-circle-line" :size="24"></cl-icon>
-							<cl-text
-								:size="12"
-								:pt="{ className: 'mt-2 text-center' }"
-								color="info"
-								>{{ t("待支付") }}</cl-text
-							>
-						</view>
-					</cl-col>
-
-					<cl-col :span="6">
-						<view class="flex flex-col justify-center items-center px-2">
-							<cl-icon name="box-1-line" :size="24"></cl-icon>
-							<cl-text
-								:size="12"
-								:pt="{ className: 'mt-2 text-center' }"
-								color="info"
-								>{{ t("未发货") }}</cl-text
-							>
-						</view>
-					</cl-col>
-
-					<cl-col :span="6">
-						<view
-							class="flex flex-col justify-center items-center relative overflow-visible px-2"
-						>
-							<cl-icon name="flight-takeoff-line" :size="24"></cl-icon>
-							<cl-text
-								:size="12"
-								:pt="{ className: 'mt-2 text-center' }"
-								color="info"
-								>{{ t("已发货") }}</cl-text
-							>
-
-							<cl-badge
-								type="primary"
-								:value="3"
-								position
-								:pt="{ className: '!right-6' }"
-							></cl-badge>
-						</view>
-					</cl-col>
-
-					<cl-col :span="6">
-						<view class="flex flex-col justify-center items-center px-2">
-							<cl-icon name="exchange-cny-line" :size="24"></cl-icon>
-							<cl-text
-								:size="12"
-								:pt="{ className: 'mt-2 text-center' }"
-								color="info"
-								>{{ t("售后 / 退款") }}</cl-text
-							>
-						</view>
-					</cl-col>
-				</cl-row>
-			</view>
-
+			<!-- C-07 个人中心：我的车辆、优惠券、消息、客服 -->
 			<cl-list :pt="{ className: 'mb-3' }">
 				<cl-list-item
-					:label="t('我的钱包')"
-					icon="wallet-line"
+					:label="t('我的车辆')"
+					icon="car-line"
 					arrow
 					hoverable
-					@tap="toTest"
+					@tap="toVehicle"
 				>
 				</cl-list-item>
 				<cl-list-item
-					:label="t('数据看板')"
-					icon="pie-chart-line"
+					:label="t('我的优惠券')"
+					icon="price-tag-3-line"
 					arrow
 					hoverable
-					@tap="toTest"
+					@tap="toCoupon"
 				>
 				</cl-list-item>
 				<cl-list-item
-					:label="t('历史记录')"
-					icon="history-line"
+					:label="t('消息通知')"
+					icon="notification-4-line"
 					arrow
 					hoverable
-					@tap="toTest"
+					@tap="toNotice"
 				>
 				</cl-list-item>
 				<cl-list-item
-					:label="t('邀请好友')"
-					icon="share-line"
+					:label="t('客服')"
+					icon="customer-service-2-line"
 					arrow
 					hoverable
-					@tap="toTest"
+					@tap="toService"
 				>
 				</cl-list-item>
 			</cl-list>
 
-			<cl-list>
+			<cl-list :pt="{ className: 'mb-3' }">
 				<cl-list-item :label="t('设置')" icon="settings-line" arrow hoverable @tap="toSet">
 				</cl-list-item>
+				<cl-list-item
+					v-if="canEnterEmployee"
+					:label="t('员工入口')"
+					icon="user-star-line"
+					arrow
+					hoverable
+					@tap="toEmployee"
+				>
+				</cl-list-item>
 			</cl-list>
+
+			<view class="footer-links">
+				<cl-text :size="12" color="info" @tap="toAbout">关于我们</cl-text>
+				<cl-text :size="12" color="info" @tap="toTest">用户协议</cl-text>
+				<cl-text :size="12" color="info" @tap="toTest">隐私政策</cl-text>
+			</view>
 		</view>
 
 		<!-- 自定义底部导航栏 -->
@@ -236,12 +109,14 @@
 </template>
 
 <script setup lang="ts">
-import { router, userInfo, useStore, t } from "@/.cool";
+import { request, router, userInfo, useStore, t } from "@/.cool";
 import { useUi } from "@/uni_modules/cool-ui";
+import { computed } from "vue";
 import CustomTabbar from "./components/tabbar.uvue";
 
 const { user } = useStore();
 const ui = useUi();
+const canEnterEmployee = computed(() => user.hasEmployeeAccess() || user.hasManagerAccess());
 
 function toTest() {
 	ui.showToast({
@@ -257,6 +132,44 @@ function toEdit() {
 	router.to("/pages/user/edit");
 }
 
+function toVehicle() {
+	router.to("/pages/biz/vehicle-list");
+}
+
+function toCoupon() {
+	router.to("/pages/biz/coupon");
+}
+
+function toNotice() {
+	router.to("/pages/set/notice");
+}
+
+async function toService() {
+	try {
+		const res = await request({ url: "/app/base/config", method: "GET" });
+		const phone = (res?.data?.service_phone ?? "").trim();
+		if (phone) {
+			uni.makePhoneCall({ phoneNumber: phone });
+		} else {
+			ui.showToast({ message: t("暂未配置客服电话") });
+		}
+	} catch {
+		ui.showToast({ message: t("获取配置失败") });
+	}
+}
+
+function toAbout() {
+	router.to("/pages/set/about");
+}
+
+function toEmployee() {
+	if (user.hasManagerAccess()) {
+		router.to("/pages/employee/manager-index");
+	} else {
+		router.to("/pages/employee/index");
+	}
+}
+
 onReady(() => {
 	user.get();
 });
@@ -265,5 +178,9 @@ onReady(() => {
 <style lang="scss" scoped>
 .top-icon {
 	@apply flex items-center justify-center rounded-lg bg-white mr-3 p-2;
+}
+
+.footer-links {
+	@apply flex flex-row justify-center gap-4 py-4;
 }
 </style>

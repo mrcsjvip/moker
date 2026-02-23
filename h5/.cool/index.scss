@@ -1,8 +1,26 @@
+@use "./icons/index.scss" as *;
+
 /* @tailwind base; */
 @tailwind components;
 @tailwind utilities;
 
-@import "./icons/index.scss";
+/* 小程序端兜底背景，避免主题变量未生效时出现白底 */
+page {
+	background-color: #f5f5f5;
+	color: #333333;
+}
+
+@media (prefers-color-scheme: dark) {
+	page {
+		background-color: #121212;
+		color: #f5f5f5;
+	}
+}
+
+/* Figma Shadow/Card: 0 2px 8px rgba(0,0,0,0.06) */
+.shadow-card {
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
 
 .uni-tabbar {
 	// #ifdef H5

@@ -3905,6 +3905,40 @@ declare namespace Eps {
 		request: Request;
 	}
 
+	interface UserAccount_bind {
+		/**
+		 * 获取C端用户角色能力
+		 */
+		roleAccess(data?: any): Promise<any>;
+
+		/**
+		 * 按C端用户ID获取绑定信息
+		 */
+		bindInfo(data?: any): Promise<any>;
+
+		/**
+		 * 按C端用户ID解除绑定
+		 */
+		unbind(data?: any): Promise<any>;
+
+		/**
+		 * 新增或更新绑定
+		 */
+		save(data?: any): Promise<any>;
+
+		/**
+		 * 权限标识
+		 */
+		permission: { roleAccess: string; bindInfo: string; unbind: string; save: string };
+
+		/**
+		 * 权限状态
+		 */
+		_permission: { roleAccess: boolean; bindInfo: boolean; unbind: boolean; save: boolean };
+
+		request: Request;
+	}
+
 	interface UserAddress {
 		/**
 		 * 删除
@@ -4242,7 +4276,7 @@ declare namespace Eps {
 		staff: { staff_profile: StaffStaff_profile };
 		store: { store: StoreStore };
 		task: { info: TaskInfo };
-		user: { address: UserAddress; info: UserInfo };
+		user: { account_bind: UserAccount_bind; address: UserAddress; info: UserInfo };
 		vehicle: { vehicle: VehicleVehicle };
 		workorder: { work_order: WorkorderWork_order; work_order_step: WorkorderWork_order_step };
 	};

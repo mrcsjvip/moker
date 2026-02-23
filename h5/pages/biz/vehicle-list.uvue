@@ -1,0 +1,66 @@
+<template>
+	<cl-page>
+		<cl-topbar title="我的车辆" :show-back="true" safe-area-top></cl-topbar>
+		<view class="p-3">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else-if="list.length === 0" class="empty">
+				<cl-icon name="car-line" :size="48" color="info"></cl-icon>
+				<cl-text :size="16" color="info" :pt="{ className: 'mt-3' }">暂无车辆</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">预约时将自动添加车辆信息</cl-text>
+			</view>
+			<view v-else class="list">
+				<view class="card shadow-card" v-for="item in list" :key="item.id">
+					<view class="flex flex-row items-center">
+						<cl-text :size="16" :pt="{ className: 'font-bold' }">{{ item.plateNumber }}</cl-text>
+					</view>
+					<cl-text v-if="item.model || item.brand" :size="12" color="info" :pt="{ className: 'mt-2' }">
+						{{ [item.brand, item.model].filter(Boolean).join(" · ") || "—" }}
+					</cl-text>
+					<cl-text v-if="item.vin" :size="12" color="info">VIN {{ item.vin }}</cl-text>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request } from "@/.cool";
+
+type VehicleItem = {
+	id: number;
+	plateNumber: string;
+	brand: string;
+	model: string;
+	vin: string;
+};
+
+const list = ref<VehicleItem[]>([]);
+const loading = ref(true);
+
+onMounted(async () => {
+	try {
+		const res = await request({ url: "/app/vehicle/my/list", method: "GET" });
+		list.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		list.value = [];
+	}
+	loading.value = false;
+});
+</script>
+
+<style lang="scss" scoped>
+.empty {
+	@apply flex flex-col items-center justify-center py-16;
+}
+
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+</style>

@@ -1,0 +1,144 @@
+<template>
+	<cl-page>
+		<cl-topbar title="到店签到" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<template v-else>
+				<view class="card shadow-card">
+					<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">客户信息</cl-text>
+					<cl-list border>
+						<cl-list-item label="车牌">
+							<cl-text :size="14">{{ detail.plate }}</cl-text>
+						</cl-list-item>
+						<cl-list-item label="车型">
+							<cl-text :size="14">{{ detail.model }}</cl-text>
+						</cl-list-item>
+						<cl-list-item label="服务项目">
+							<cl-text :size="14">{{ detail.serviceName }}</cl-text>
+						</cl-list-item>
+						<cl-list-item label="预约时段">
+							<cl-text :size="14">{{ detail.timeSlot }}</cl-text>
+						</cl-list-item>
+						<cl-list-item label="联系人">
+							<cl-text :size="14">{{ detail.contact }}</cl-text>
+						</cl-list-item>
+						<cl-list-item label="备注" v-if="detail.remark != null && detail.remark.length > 0">
+							<cl-text :size="14">{{ detail.remark }}</cl-text>
+						</cl-list-item>
+					</cl-list>
+				</view>
+
+				<cl-button type="primary" round class="w-full mb-3" :loading="signLoading" @tap="confirmSign">客户已到店，确认签到</cl-button>
+
+				<view class="op-row">
+					<cl-button round class="flex-1" @tap="contactCustomer">联系客户</cl-button>
+					<cl-button round class="flex-1 ml-2" @tap="contactFront">联系前台</cl-button>
+				</view>
+			</template>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+const appointmentId = ref(0);
+const loading = ref(true);
+const signLoading = ref(false);
+
+const detail = ref({
+	plate: "",
+	model: "",
+	serviceName: "",
+	timeSlot: "",
+	contact: "",
+	remark: "",
+	customerPhone: "" as string,
+	storePhone: "" as string
+});
+
+onMounted(() => {
+	const q = router.query() as UTSJSONObject;
+	const id = q != null ? q["id"] : null;
+	appointmentId.value = id != null ? Number(id) : 0;
+	if (appointmentId.value <= 0) {
+		loading.value = false;
+		return;
+	}
+	request({ url: "/app/appointment/employee/detail?id=" + appointmentId.value, method: "GET" })
+		.then((res) => {
+			const d = res?.data;
+			if (d != null) {
+				detail.value = {
+					plate: d.plate ?? "",
+					model: d.model ?? "—",
+					serviceName: d.serviceName ?? "—",
+					timeSlot: d.timeSlot ?? "",
+					contact: d.contact ?? "",
+					remark: d.remark ?? "",
+					customerPhone: d.customerPhone ?? "",
+					storePhone: d.storePhone ?? ""
+				};
+			}
+		})
+		.catch(() => {})
+		.finally(() => { loading.value = false; });
+});
+
+function confirmSign() {
+	if (appointmentId.value <= 0) return;
+	signLoading.value = true;
+	request({
+		url: "/app/appointment/employee/signIn",
+		method: "POST",
+		data: { appointmentId: appointmentId.value }
+	})
+		.then((res) => {
+			const workOrderId = res?.data?.workOrderId;
+			ui.showToast({ message: "签到成功" });
+			if (workOrderId != null) {
+				router.to("/pages/employee/task?id=" + workOrderId);
+			} else {
+				router.back();
+			}
+		})
+		.catch((err) => {
+			ui.showToast({ message: (err as { message?: string })?.message ?? "签到失败" });
+		})
+		.finally(() => { signLoading.value = false; });
+}
+
+function contactCustomer() {
+	const phone = detail.value.customerPhone?.trim();
+	if (phone) {
+		uni.makePhoneCall({ phoneNumber: phone });
+	} else {
+		ui.showToast({ message: "暂无客户电话" });
+	}
+}
+
+function contactFront() {
+	const phone = detail.value.storePhone?.trim();
+	if (phone) {
+		uni.makePhoneCall({ phoneNumber: phone });
+	} else {
+		ui.showToast({ message: "暂无前台电话" });
+	}
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-4;
+}
+
+.op-row {
+	@apply flex flex-row;
+}
+</style>

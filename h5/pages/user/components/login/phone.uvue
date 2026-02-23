@@ -27,12 +27,12 @@
 
 		<view class="relative flex flex-row items-center mb-5">
 			<cl-input
-				v-model="form.smsCode"
+				:model-value="props.form.smsCode"
 				:clearable="false"
 				type="number"
 				prefix-icon="shield-check-fill"
-				:placeholder="t('请输入验证码')"
-				:maxlength="4"
+				:placeholder="t('请输入6位验证码')"
+				:maxlength="6"
 				:border="false"
 				:pt="{
 					className: parseClass([
@@ -43,6 +43,7 @@
 						className: 'mr-1'
 					}
 				}"
+				@input="onSmsCodeInput"
 			>
 			</cl-input>
 
@@ -87,6 +88,17 @@ const emit = defineEmits(["success"]);
 const ui = useUi();
 const refs = useRefs();
 
+// 短信验证码输入：仅允许 6 位数字（微信小程序中在此统一过滤）
+function onSmsCodeInput(e: { detail?: { value?: string } } | string) {
+	const raw =
+		typeof e === "string"
+			? e
+			: (e && typeof e === "object" && (e as { detail?: { value?: string } }).detail?.value) ?? "";
+	(props.form as LoginForm).smsCode = String(raw)
+		.replace(/\D/g, "")
+		.slice(0, 6);
+}
+
 // 是否同意
 const isAgree = inject("isAgree") as () => boolean;
 
@@ -111,13 +123,18 @@ async function toLogin() {
 
 	loading.value = true;
 
+	const data: { phone: string; smsCode: string; tenantId?: number } = {
+		phone,
+		smsCode
+	};
+	if (props.form.tenantId != null && !Number.isNaN(Number(props.form.tenantId))) {
+		data.tenantId = Number(props.form.tenantId);
+	}
+
 	await request({
 		url: "/app/user/login/phone",
 		method: "POST",
-		data: {
-			phone,
-			smsCode
-		}
+		data
 	})
 		.then((res) => {
 			emit("success", res);

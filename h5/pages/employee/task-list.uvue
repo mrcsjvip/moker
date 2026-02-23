@@ -1,0 +1,89 @@
+<template>
+	<cl-page>
+		<cl-topbar title="工单" :show-back="false" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view v-if="storeName != null && storeName.length > 0" class="store-bar">
+				<cl-text :size="12" color="info">当前门店：{{ storeName }}</cl-text>
+			</view>
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else-if="list.length === 0" class="empty">
+				<cl-icon name="file-list-3-line" :size="48" color="info"></cl-icon>
+				<cl-text :size="16" color="info" :pt="{ className: 'mt-3' }">暂无进行中工单</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">在今日任务中签到后工单会显示在此</cl-text>
+			</view>
+
+			<view v-else class="list">
+				<view class="card shadow-card" v-for="item in list" :key="item.id" @tap="toTask(item)">
+					<view class="flex flex-row items-center">
+						<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.plate }} · {{ item.serviceName }}</cl-text>
+						<cl-tag type="warning" size="mini" class="ml-auto">{{ item.statusText }}</cl-tag>
+					</view>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">当前阶段：{{ item.stepName }}</cl-text>
+				</view>
+			</view>
+		</view>
+
+		<employee-tabbar></employee-tabbar>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
+import { request, router, useStore } from "@/.cool";
+import EmployeeTabbar from "./components/tabbar.uvue";
+
+const { user: userStore } = useStore();
+const storeName = computed(() => userStore.info.value?.tenantName ?? null);
+
+const list = ref<EmployeeWorkOrderItem[]>([]);
+const loading = ref(false);
+
+type EmployeeWorkOrderItem = {
+	id: number;
+	plate: string;
+	serviceName: string;
+	statusText: string;
+	stepName: string;
+};
+
+async function loadList() {
+	loading.value = true;
+	userStore.get();
+	try {
+		const res = await request({ url: "/app/workorder/employee/list", method: "GET" });
+		list.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		list.value = [];
+	}
+	loading.value = false;
+}
+
+onMounted(() => {
+	loadList();
+});
+
+function toTask(item: EmployeeWorkOrderItem) {
+	router.to("/pages/employee/task?id=" + item.id);
+}
+</script>
+
+<style lang="scss" scoped>
+.store-bar {
+	@apply mb-3;
+}
+
+.empty {
+	@apply flex flex-col items-center justify-center py-16;
+}
+
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+</style>

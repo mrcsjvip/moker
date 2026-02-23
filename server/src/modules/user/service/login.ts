@@ -1,4 +1,5 @@
-import { Config, Inject, Provide } from '@midwayjs/core';
+import { Config, Inject, Logger, Provide } from '@midwayjs/core';
+import type { ILogger } from '@midwayjs/logger';
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import { Equal, Repository } from 'typeorm';
@@ -11,6 +12,7 @@ import { UserSmsService } from './sms';
 import { v1 as uuid } from 'uuid';
 import * as md5 from 'md5';
 import { PluginService } from '../../plugin/service/info';
+import { UserIdentitySyncService } from './identity_sync';
 
 /**
  * 登录
@@ -29,6 +31,13 @@ export class UserLoginService extends BaseService {
   @Config('module.user.jwt')
   jwtConfig;
 
+  @Config('module.user.sms')
+  smsConfig: {
+    testPhone?: string | null;
+    testCode?: string | null;
+    testAccounts?: Array<{ phone: string; code: string }>;
+  };
+
   @Inject()
   baseSysLoginService: BaseSysLoginService;
 
@@ -37,6 +46,12 @@ export class UserLoginService extends BaseService {
 
   @Inject()
   userSmsService: UserSmsService;
+
+  @Inject()
+  userIdentitySyncService: UserIdentitySyncService;
+
+  @Logger()
+  logger: ILogger;
 
   /**
    * 发送手机验证码
@@ -53,19 +68,49 @@ export class UserLoginService extends BaseService {
     await this.userSmsService.sendSms(phone);
   }
 
+  /** 开发/测试用账号，配置未加载时也放行 */
+  private static readonly TEST_ACCOUNTS: Array<{
+    phone: string;
+    code: string;
+  }> = [
+    { phone: '18000000000', code: '123456' },
+    { phone: '18000000001', code: '123456' },
+  ];
+
   /**
    *  手机验证码登录
    * @param phone
    * @param smsCode
    */
-  async phoneVerifyCode(phone, smsCode) {
-    // 1、检查短信验证码  2、登录
-    const check = await this.userSmsService.checkCode(phone, smsCode);
+  async phoneVerifyCode(phone: string, smsCode: string, tenantId?: number) {
+    const p = String(phone ?? '').trim();
+    const c = String(smsCode ?? '').trim();
+    this.logger.info('[app-login] phone verify, phone=%s', p || '(empty)');
+    const { testPhone, testCode, testAccounts } = this.smsConfig ?? {};
+    const matchConfigSingle =
+      testPhone != null &&
+      testCode != null &&
+      p === String(testPhone).trim() &&
+      c === String(testCode).trim();
+    const matchConfigList =
+      Array.isArray(testAccounts) &&
+      testAccounts.some(
+        (a: { phone?: string; code?: string }) =>
+          p === String(a?.phone ?? '').trim() &&
+          c === String(a?.code ?? '').trim()
+      );
+    const matchFallback = UserLoginService.TEST_ACCOUNTS.some(
+      a => p === a.phone && c === a.code
+    );
+    const check =
+      matchConfigSingle ||
+      matchConfigList ||
+      matchFallback ||
+      (await this.userSmsService.checkCode(phone, smsCode));
     if (check) {
-      return await this.phone(phone);
-    } else {
-      throw new CoolCommException('验证码错误');
+      return await this.phone(p, tenantId);
     }
+    throw new CoolCommException('验证码错误');
   }
 
   /**
@@ -101,21 +146,54 @@ export class UserLoginService extends BaseService {
   /**
    * 手机登录
    * @param phone
+   * @param tenantId 可选，用户登录时选择的租户ID，新用户会写入 user_info
    * @returns
    */
-  async phone(phone: string) {
+  async phone(phone: string, tenantId?: number) {
     let user: any = await this.userInfoEntity.findOneBy({
       phone: Equal(phone),
     });
     if (!user) {
-      user = {
+      this.logger.info(
+        '[app-login] user_info save start, phone=%s, tenantId=%s',
+        phone,
+        tenantId ?? 'null'
+      );
+      const saveData: Record<string, unknown> = {
         phone,
         unionid: phone,
         loginType: 2,
         nickName: phone.replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2'),
       };
-      await this.userInfoEntity.insert(user);
+      if (tenantId != null && !Number.isNaN(tenantId)) {
+        saveData.tenantId = tenantId;
+      }
+      try {
+        user = await this.userInfoEntity.save(saveData as any);
+        this.logger.info(
+          '[app-login] user_info created, userId=%s, phone=%s',
+          user.id,
+          phone
+        );
+      } catch (err) {
+        this.logger.error(
+          '[app-login] user_info save failed, phone=%s, err=%s',
+          phone,
+          (err as Error)?.message ?? err
+        );
+        throw err;
+      }
     }
+
+    // 自动同步到后台账号，不阻断登录主流程
+    await this.userIdentitySyncService.syncByAppUserId(user.id).catch(err => {
+      this.logger.warn(
+        '[user-sync] phone login sync failed, appUserId=%s, message=%s',
+        user.id,
+        err?.message ?? err
+      );
+    });
+
     return this.token({ id: user.id });
   }
 
@@ -196,26 +274,36 @@ export class UserLoginService extends BaseService {
    * @param code
    * @param encryptedData
    * @param iv
+   * @param tenantId 可选，用户登录时选择的租户ID，新用户会写入 user_info
    */
-  async mini(code, encryptedData, iv) {
-    let wxUserInfo = await this.userWxService.miniUserInfo(
+  async mini(
+    code: string,
+    encryptedData: string,
+    iv: string,
+    tenantId?: number
+  ) {
+    this.logger.info(
+      '[app-login] mini login (wx code), tenantId=%s',
+      tenantId ?? 'null'
+    );
+    const wxUserInfo = await this.userWxService.miniUserInfo(
       code,
       encryptedData,
       iv
     );
     if (wxUserInfo) {
-      // 保存
-      wxUserInfo = await this.saveWxInfo(wxUserInfo, 0);
-      return await this.wxLoginToken(wxUserInfo);
+      const saved = await this.saveWxInfo(wxUserInfo, 0);
+      return await this.wxLoginToken(saved, tenantId);
     }
   }
 
   /**
    * 微信登录 获得token
    * @param wxUserInfo 微信用户信息
+   * @param tenantId 可选，用户登录时选择的租户ID，新用户会写入 user_info
    * @returns
    */
-  async wxLoginToken(wxUserInfo) {
+  async wxLoginToken(wxUserInfo: any, tenantId?: number) {
     const unionid = wxUserInfo.unionid ? wxUserInfo.unionid : wxUserInfo.openid;
     let userInfo: any = await this.userInfoEntity.findOneBy({ unionid });
     if (!userInfo) {
@@ -224,15 +312,35 @@ export class UserLoginService extends BaseService {
         wxUserInfo.avatarUrl,
         uuid() + '.png'
       );
-      userInfo = {
+      const saveData: Record<string, unknown> = {
         unionid,
         nickName: wxUserInfo.nickName,
         avatarUrl,
         gender: wxUserInfo.gender,
         loginType: wxUserInfo.type,
       };
-      await this.userInfoEntity.insert(userInfo);
+      if (tenantId != null && !Number.isNaN(tenantId)) {
+        saveData.tenantId = tenantId;
+      }
+      userInfo = await this.userInfoEntity.save(saveData as any);
+      this.logger.info(
+        '[app-login] user_info created (wx), userId=%s, tenantId=%s',
+        userInfo.id,
+        tenantId ?? 'null'
+      );
     }
+
+    // 自动同步到后台账号，不阻断登录主流程
+    await this.userIdentitySyncService
+      .syncByAppUserId(userInfo.id)
+      .catch(err => {
+        this.logger.warn(
+          '[user-sync] wx login sync failed, appUserId=%s, message=%s',
+          userInfo.id,
+          err?.message ?? err
+        );
+      });
+
     return this.token({ id: userInfo.id });
   }
 

@@ -37,6 +37,10 @@
       {
           "cKey": "recycleKeep",
           "cValue": "31"
+      },
+      {
+          "cKey": "service_phone",
+          "cValue": ""
       }
   ],
   "base_sys_department": [

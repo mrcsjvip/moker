@@ -22,10 +22,35 @@ export class AppUserLoginController extends BaseController {
   baseSysLoginService: BaseSysLoginService;
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Get('/tenantList', { summary: '租户列表（登录前选择租户）' })
+  async tenantList() {
+    return this.ok(await this.baseSysLoginService.getTenantList());
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
+  @Get('/tenantInfo', { summary: '租户详情（扫码登录页回显门店）' })
+  async tenantInfo(@Query('tenantId') tenantId: number) {
+    const info = await this.baseSysLoginService.getTenantInfo(
+      Number(tenantId) || 0
+    );
+    return this.ok(info);
+  }
+
+  @CoolTag(TagTypes.IGNORE_TOKEN)
   @Post('/mini', { summary: '小程序登录' })
-  async mini(@Body() body) {
-    const { code, encryptedData, iv } = body;
-    return this.ok(await this.userLoginService.mini(code, encryptedData, iv));
+  async mini(
+    @Body()
+    body: {
+      code?: string;
+      encryptedData?: string;
+      iv?: string;
+      tenantId?: number;
+    }
+  ) {
+    const { code, encryptedData, iv, tenantId } = body;
+    return this.ok(
+      await this.userLoginService.mini(code, encryptedData, iv, tenantId)
+    );
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
@@ -42,8 +67,22 @@ export class AppUserLoginController extends BaseController {
 
   @CoolTag(TagTypes.IGNORE_TOKEN)
   @Post('/phone', { summary: '手机号登录' })
-  async phone(@Body('phone') phone: string, @Body('smsCode') smsCode: string) {
-    return this.ok(await this.userLoginService.phoneVerifyCode(phone, smsCode));
+  async phone(
+    @Body() body: { phone?: string; smsCode?: string; tenantId?: number }
+  ) {
+    const phone = String(
+      body?.phone ?? (body as Record<string, unknown>)?.['Phone'] ?? ''
+    );
+    const smsCode = String(
+      body?.smsCode ?? (body as Record<string, unknown>)?.['sms_code'] ?? ''
+    );
+    const tenantId =
+      body?.tenantId != null && !Number.isNaN(Number(body.tenantId))
+        ? Number(body.tenantId)
+        : undefined;
+    return this.ok(
+      await this.userLoginService.phoneVerifyCode(phone, smsCode, tenantId)
+    );
   }
 
   @CoolTag(TagTypes.IGNORE_TOKEN)

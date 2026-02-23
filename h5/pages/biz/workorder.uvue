@@ -1,7 +1,7 @@
 <template>
 	<cl-page>
 		<view class="p-3">
-			<view class="order-card" v-for="item in list" :key="item.no">
+			<view class="order-card shadow-card" v-for="item in list" :key="item.no">
 				<view class="flex flex-row items-center">
 					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.service }}</cl-text>
 					<cl-tag class="ml-auto" :type="item.statusType" size="mini">{{ item.status }}</cl-tag>

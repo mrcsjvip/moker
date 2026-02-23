@@ -41,8 +41,8 @@ export class UserSmsService extends BaseService {
    * @param phone
    */
   async sendSms(phone) {
-    // 随机四位验证码
-    const code = _.random(1000, 9999);
+    // 随机六位验证码
+    const code = _.random(100000, 999999);
     const pluginKey = this.config.pluginKey;
     if (!this.plugin)
       throw new CoolCommException(

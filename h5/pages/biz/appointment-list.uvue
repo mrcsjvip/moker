@@ -1,0 +1,132 @@
+<template>
+	<cl-page>
+		<cl-topbar title="我的预约" :show-back="true" safe-area-top></cl-topbar>
+
+		<cl-tabs v-model="activeTab" :list="tabList" fill :pt="{ className: 'mb-3' }"></cl-tabs>
+
+		<view class="p-3">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else-if="list.length === 0" class="empty">
+				<cl-icon name="calendar-todo-line" :size="48" color="info"></cl-icon>
+				<cl-text :size="16" color="info" :pt="{ className: 'mt-3' }">暂无预约</cl-text>
+				<cl-button type="primary" round class="mt-4" @tap="toAppointment">去预约</cl-button>
+			</view>
+
+			<view v-else class="list">
+				<view class="card shadow-card" v-for="item in list" :key="item.id">
+					<view class="flex flex-row items-center">
+						<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.serviceName }}</cl-text>
+						<cl-tag :type="item.statusType" size="mini" class="ml-auto">{{ item.statusText }}</cl-tag>
+					</view>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.storeName }}</cl-text>
+					<cl-text :size="12" color="info">{{ item.dateTime }}</cl-text>
+					<view class="op-row mt-3">
+						<cl-button size="mini" @tap="viewDetail(item)">查看详情</cl-button>
+						<cl-button size="mini" v-if="item.canCancel" @tap="cancelItem(item)">取消</cl-button>
+						<cl-button size="mini" type="primary" v-if="item.canReorder" @tap="reorder(item)">再次预约</cl-button>
+					</view>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref, watch } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const tabList = ref([
+	{ label: "全部", value: "all" },
+	{ label: "待服务", value: "pending" },
+	{ label: "已完成", value: "done" },
+	{ label: "已取消", value: "cancelled" }
+]);
+
+const activeTab = ref("all");
+const list = ref<MyAppointmentItem[]>([]);
+const loading = ref(false);
+
+type MyAppointmentItem = {
+	id: number;
+	serviceName: string;
+	storeName: string;
+	dateTime: string;
+	statusText: string;
+	statusType: string;
+	canCancel: boolean;
+	canReorder: boolean;
+};
+
+async function loadList() {
+	loading.value = true;
+	try {
+		const res = await request({
+			url: "/app/appointment/my/list?tab=" + activeTab.value,
+			method: "GET"
+		});
+		list.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		list.value = [];
+	}
+	loading.value = false;
+}
+
+watch(activeTab, () => loadList(), { immediate: true });
+
+function toAppointment() {
+	router.to("/pages/biz/service-select");
+}
+
+function viewDetail(item: MyAppointmentItem) {
+	router.to("/pages/biz/workorder-progress?id=" + item.id);
+}
+
+async function cancelItem(item: MyAppointmentItem) {
+	const confirmed = await new Promise<boolean>((resolve) => {
+		uni.showModal({
+			title: "取消预约",
+			content: "确定要取消该预约吗？",
+			success: (res) => resolve(res.confirm)
+		});
+	});
+	if (!confirmed) return;
+	try {
+		await request({
+			url: "/app/appointment/my/cancel",
+			method: "POST",
+			data: { id: item.id }
+		});
+		ui.showToast({ message: "已取消预约" });
+		loadList();
+	} catch (e: any) {
+		ui.showToast({ message: e?.message || "取消失败" });
+	}
+}
+
+function reorder(item: MyAppointmentItem) {
+	router.to("/pages/biz/appointment");
+}
+</script>
+
+<style lang="scss" scoped>
+.empty {
+	@apply flex flex-col items-center justify-center py-16;
+}
+
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+
+.op-row {
+	@apply flex flex-row gap-2 flex-wrap;
+}
+</style>

@@ -75,6 +75,11 @@ import {
 import { useUi } from "@/uni_modules/cool-ui";
 import { reactive, ref } from "vue";
 
+const props = defineProps<{
+	/** 登录时选择的租户ID */
+	tenantId?: number;
+}>();
+
 const emit = defineEmits(["success"]);
 
 const { user } = useStore();
@@ -172,10 +177,14 @@ async function miniLogin() {
 	ui.showLoading(t("登录中"));
 
 	await wx.miniLogin().then(async (data) => {
+		const body: Record<string, unknown> = { ...data };
+		if (props.tenantId != null && !Number.isNaN(Number(props.tenantId))) {
+			body.tenantId = Number(props.tenantId);
+		}
 		await request({
 			url: "/app/user/login/mini",
 			method: "POST",
-			data
+			data: body
 		})
 			.then(async (res) => {
 				// 设置token

@@ -1,0 +1,132 @@
+<template>
+	<cl-page>
+		<cl-topbar :show-back="false" safe-area-top backgroundColor="#0066b1">
+			<view class="flex flex-row items-center w-full px-3 py-2">
+				<cl-avatar :src="avatar" :size="48" :pt="{ className: '!rounded-full' }"></cl-avatar>
+				<view class="flex flex-col ml-3">
+					<cl-text :size="18" :pt="{ className: 'font-bold' }" class="text-white">{{ displayName }}</cl-text>
+					<cl-text :size="14" class="text-white opacity-90">{{ roleLabel }}</cl-text>
+					<cl-text v-if="storeName != null && storeName.length > 0" :size="12" class="text-white opacity-80">{{ storeName }}</cl-text>
+				</view>
+			</view>
+		</cl-topbar>
+
+		<view class="p-3">
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-2' }">本月统计</cl-text>
+				<cl-text :size="14">完成单数 {{ monthCount }} 单</cl-text>
+				<cl-text :size="14">提成金额 ¥{{ commission }}</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">个人星级 ★★★★☆（好评率 {{ rating }}%）</cl-text>
+			</view>
+
+			<cl-list :pt="{ className: 'mb-3' }">
+				<cl-list-item label="提成明细" icon="money-cny-circle-line" arrow hoverable @tap="toCommission"></cl-list-item>
+				<cl-list-item label="标准施工视频" icon="video-line" arrow hoverable @tap="toKnowledge"></cl-list-item>
+				<cl-list-item label="新品膜材速查" icon="book-open-line" arrow hoverable @tap="toKnowledge"></cl-list-item>
+			</cl-list>
+
+			<cl-list :pt="{ className: 'mb-3' }">
+				<cl-list-item
+					v-if="canEnterManager"
+					label="店长工作台"
+					icon="store-2-line"
+					arrow
+					hoverable
+					@tap="toManager"
+				></cl-list-item>
+			</cl-list>
+			<cl-list :pt="{ className: 'mb-3' }">
+				<cl-list-item label="消息通知" icon="notification-4-line" arrow hoverable @tap="toNotice"></cl-list-item>
+				<cl-list-item label="账号安全" icon="lock-line" arrow hoverable @tap="toSettings"></cl-list-item>
+			</cl-list>
+
+			<cl-button round class="w-full logout-btn" @tap="logout">退出登录</cl-button>
+		</view>
+
+		<employee-tabbar></employee-tabbar>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
+import { request, router, useStore, t } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+import EmployeeTabbar from "./components/tabbar.uvue";
+
+const ui = useUi();
+const { user: userStore } = useStore();
+const canEnterManager = computed(() => userStore.hasManagerAccess());
+
+const info = computed(() => userStore.info.value);
+const avatar = computed(() => info.value?.avatarUrl ?? "");
+const displayName = computed(() => info.value?.nickName ?? t("员工"));
+const storeName = computed(() => info.value?.tenantName ?? null);
+const roleLabel = computed(() => {
+	if (info.value?.isManager === true) return t("店长");
+	if (info.value?.isEmployee === true) return t("员工");
+	return t("岗位：技师");
+});
+
+const monthCount = ref(0);
+const commission = ref("0");
+const rating = ref(0);
+
+onMounted(() => {
+	request({ url: "/app/workorder/employee/stats", method: "GET" })
+		.then((res) => {
+			const d = res?.data;
+			if (d != null) {
+				monthCount.value = d.monthCount ?? 0;
+				commission.value = String(d.commission ?? "0");
+				rating.value = Number(d.rating ?? 0);
+			}
+		})
+		.catch(() => {});
+});
+
+function toCommission() {
+	ui.showToast({ message: t("提成明细") });
+}
+
+function toManager() {
+	router.to("/pages/employee/manager-index");
+}
+
+function toKnowledge() {
+	router.to("/pages/employee/knowledge");
+}
+
+function toNotice() {
+	ui.showToast({ message: t("消息通知") });
+}
+
+function toSettings() {
+	ui.showToast({ message: t("账号安全") });
+}
+
+function logout() {
+	userStore.logout();
+}
+</script>
+
+<style lang="scss" scoped>
+.text-white {
+	color: #fff;
+}
+
+.opacity-90 {
+	opacity: 0.9;
+}
+
+.opacity-80 {
+	opacity: 0.8;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.logout-btn {
+	color: #cc3333;
+}
+</style>

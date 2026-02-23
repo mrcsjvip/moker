@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `base_sys_tenant` (
   KEY `IDX_tenantId` (`tenantId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='租户表';
 
--- 系统配置
+-- 系统配置（按租户隔离：同一 cKey 可配置全局 tenantId=null 或按租户）
 CREATE TABLE IF NOT EXISTS `base_sys_conf` (
   `id` int NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `createTime` varchar(255) DEFAULT NULL COMMENT '创建时间',
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS `base_sys_conf` (
   `cKey` varchar(255) NOT NULL COMMENT '配置键',
   `cValue` text COMMENT '配置值',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `IDX_cKey` (`cKey`),
+  UNIQUE KEY `idx_conf_tenant_key` (`tenantId`,`cKey`),
   KEY `IDX_createTime` (`createTime`),
   KEY `IDX_updateTime` (`updateTime`),
   KEY `IDX_tenantId` (`tenantId`)
@@ -656,7 +656,15 @@ FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM base_sys_tenant LIMIT 1);
 
 -- ------------------------------------------------------------
--- 菜单说明：首次部署后，若需「租户管理」「总部/门店管理」等菜单，
--- 请执行：init_tenant_menu.sql、init_chain_menu.sql、init_missing_pages_menu.sql
--- 或由本地开发时 cool.initMenu 自动从模块导入。
+-- 菜单说明：本目录仅保留此一份初始化脚本。租户/连锁/业务等菜单可由
+-- 首次启动时 cool.initMenu 从模块自动导入，无需单独 SQL。
 -- ------------------------------------------------------------
+--
+-- 三、可选：历史库修复（仅当 base_sys_user 存在错误唯一索引时执行）
+-- 若新增租户时报错 Duplicate entry 'admin' for key... 说明表上存在仅针对 username 的旧唯一索引。
+-- 执行前可查看索引：SHOW INDEX FROM base_sys_user;
+-- 将下面 DROP INDEX 中的索引名替换为实际错误索引名后再执行。
+--
+-- ALTER TABLE base_sys_user DROP INDEX IDX_469ad55973f5b98930f6ad627b;
+-- ALTER TABLE base_sys_user ADD UNIQUE KEY IDX_tenantId_username (tenantId, username);
+--

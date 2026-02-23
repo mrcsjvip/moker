@@ -1,0 +1,12 @@
+{
+	"appid": "touristappid",
+	"projectname": "moker-h5",
+	"compileType": "miniprogram",
+	"miniprogramRoot": "unpackage/dist/dev/mp-weixin",
+	"setting": {
+		"es6": true,
+		"postcss": true,
+		"minified": false,
+		"urlCheck": false
+	}
+}

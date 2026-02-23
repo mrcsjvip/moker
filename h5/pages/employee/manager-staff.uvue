@@ -1,0 +1,51 @@
+<template>
+	<cl-page>
+		<cl-topbar title="员工" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<cl-noticebar :list="noticeList" :pt="{ className: 'mb-3' }"></cl-noticebar>
+
+			<view class="list">
+				<view class="card shadow-card" v-for="item in staffList" :key="item.id" @tap="viewStaff(item)">
+					<view class="flex flex-row items-center">
+						<cl-avatar :src="item.avatar" :size="40" :pt="{ className: '!rounded-full' }"></cl-avatar>
+						<view class="flex flex-col flex-1 ml-3">
+							<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
+							<cl-text :size="12" color="info">{{ item.role }} · 今日接单 {{ item.todayCount }} 单</cl-text>
+						</view>
+						<cl-icon name="arrow-right-s-line" :size="16"></cl-icon>
+					</view>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const noticeList = ref(["完整员工档案、提成规则、排班请在商家端管理后台操作"]);
+
+const staffList = ref([
+	{ id: 1, name: "李四", role: "技师", todayCount: 3, avatar: "" },
+	{ id: 2, name: "王五", role: "技师", todayCount: 2, avatar: "" },
+	{ id: 3, name: "赵六", role: "前台", todayCount: 0, avatar: "" }
+]);
+
+function viewStaff(item: any) {
+	ui.showToast({ message: "查看 " + item.name + " 今日任务" });
+}
+</script>
+
+<style lang="scss" scoped>
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+</style>

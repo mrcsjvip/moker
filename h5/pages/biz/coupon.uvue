@@ -1,7 +1,7 @@
 <template>
 	<cl-page>
 		<view class="p-3">
-			<view class="coupon-card" v-for="item in coupons" :key="item.name">
+			<view class="coupon-card shadow-card" v-for="item in coupons" :key="item.name">
 				<view class="flex flex-row items-center">
 					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
 					<cl-tag class="ml-auto" type="primary" size="mini">{{ item.type }}</cl-tag>

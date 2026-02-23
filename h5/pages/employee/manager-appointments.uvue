@@ -1,0 +1,167 @@
+<template>
+	<cl-page>
+		<cl-topbar title="预约列表" :show-back="true" safe-area-top></cl-topbar>
+
+		<cl-tabs v-model="activeTab" :list="tabList" fill :pt="{ className: 'mb-3' }"></cl-tabs>
+
+		<view class="p-3">
+			<view class="filter-bar">
+				<cl-text :size="12" color="info">按日期 / 技师 / 服务类型筛选</cl-text>
+			</view>
+
+			<view v-if="loading" class="empty-bar">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else class="list">
+				<view class="card shadow-card" v-for="item in list" :key="item.id">
+					<view class="flex flex-row items-center">
+						<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.plate }} · {{ item.serviceName }}</cl-text>
+						<cl-tag :type="item.statusType" size="mini" class="ml-auto">{{ item.statusText }}</cl-tag>
+					</view>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">预约时间 {{ item.dateTime }}</cl-text>
+					<cl-text :size="12" color="info">分配技师 {{ item.tech }}</cl-text>
+					<view class="op-row mt-3">
+						<cl-button size="mini" @tap="view(item)">查看</cl-button>
+						<cl-button size="mini" @tap="assignTech(item)">改派技师</cl-button>
+						<cl-button size="mini" v-if="item.canCancel" @tap="cancelItem(item)">取消预约</cl-button>
+					</view>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref, watch } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const tabList = ref([
+	{ label: "全部", value: "all" },
+	{ label: "待服务", value: "pending" },
+	{ label: "已到店", value: "arrived" },
+	{ label: "已完成", value: "done" },
+	{ label: "已取消", value: "cancelled" }
+]);
+
+const activeTab = ref("all");
+const list = ref<ManagerAppointmentItem[]>([]);
+const loading = ref(false);
+const technicianList = ref<Array<{ id: number; name: string }>>([]);
+
+type ManagerAppointmentItem = {
+	id: number;
+	plate: string;
+	serviceName: string;
+	dateTime: string;
+	tech: string;
+	statusText: string;
+	statusType: string;
+	canCancel: boolean;
+};
+
+async function loadList() {
+	loading.value = true;
+	try {
+		const res = await request({
+			url: "/app/appointment/employee/managerAppointmentList?tab=" + activeTab.value,
+			method: "GET"
+		});
+		list.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		list.value = [];
+	}
+	loading.value = false;
+}
+
+async function loadTechnicianList() {
+	try {
+		const res = await request({ url: "/app/appointment/employee/technicianList", method: "GET" });
+		technicianList.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		technicianList.value = [];
+	}
+}
+
+watch(activeTab, () => {
+	loadList();
+}, { immediate: true });
+
+function view(item: ManagerAppointmentItem) {
+	router.to("/pages/employee/sign?id=" + item.id);
+}
+
+function assignTech(item: ManagerAppointmentItem) {
+	loadTechnicianList().then(() => {
+		const techs = technicianList.value;
+		if (techs.length === 0) {
+			ui.showToast({ message: "暂无可选技师" });
+			return;
+		}
+		uni.showActionSheet({
+			itemList: techs.map(t => t.name),
+			success: (res) => {
+				const tech = techs[res.tapIndex];
+				request({
+					url: "/app/appointment/employee/managerReassign",
+					method: "POST",
+					data: { appointmentId: item.id, technicianId: tech.id }
+				})
+					.then(() => {
+						ui.showToast({ message: "已改派" });
+						loadList();
+					})
+					.catch((e: any) => {
+						ui.showToast({ message: e?.message ?? "改派失败" });
+					});
+			}
+		});
+	});
+}
+
+async function cancelItem(item: ManagerAppointmentItem) {
+	const confirmed = await new Promise<boolean>((resolve) => {
+		uni.showModal({
+			title: "取消预约",
+			content: "确定要取消该预约吗？",
+			success: (res) => resolve(res.confirm)
+		});
+	});
+	if (!confirmed) return;
+	try {
+		await request({
+			url: "/app/appointment/employee/managerCancel",
+			method: "POST",
+			data: { appointmentId: item.id }
+		});
+		ui.showToast({ message: "已取消预约" });
+		loadList();
+	} catch (e: any) {
+		ui.showToast({ message: e?.message ?? "取消失败" });
+	}
+}
+</script>
+
+<style lang="scss" scoped>
+.filter-bar {
+	@apply mb-3;
+}
+
+.empty-bar {
+	@apply py-4;
+}
+
+.list {
+	@apply flex flex-col gap-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+
+.op-row {
+	@apply flex flex-row gap-2 flex-wrap;
+}
+</style>

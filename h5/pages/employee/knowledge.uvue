@@ -1,0 +1,69 @@
+<template>
+	<cl-page>
+		<cl-topbar title="知识赋能" :show-back="true" safe-area-top></cl-topbar>
+
+		<cl-tabs v-model="activeTab" :list="tabList" fill :pt="{ className: 'mb-3' }"></cl-tabs>
+
+		<view class="p-3">
+			<view v-if="activeTab === 'video'">
+				<view class="card shadow-card" v-for="item in videoList" :key="item.id" @tap="playVideo(item)">
+					<view class="flex flex-row items-center">
+						<cl-image
+							:src="item.cover"
+							:width="80"
+							:height="60"
+							:pt="{ className: 'rounded-lg' }"
+						></cl-image>
+						<view class="flex flex-col flex-1 ml-3">
+							<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.title }}</cl-text>
+							<cl-text :size="12" color="info">{{ item.duration }} · {{ item.category }}</cl-text>
+						</view>
+						<cl-icon name="play-circle-line" :size="24"></cl-icon>
+					</view>
+				</view>
+			</view>
+
+			<view v-if="activeTab === 'material'">
+				<view class="card shadow-card" v-for="item in materialList" :key="item.id">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.brand }} {{ item.model }}</cl-text>
+					<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ item.desc }}</cl-text>
+					<cl-text :size="12" color="info">适用：{{ item.apply }} · 施工注意：{{ item.note }}</cl-text>
+				</view>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const tabList = ref([
+	{ label: "施工视频", value: "video" },
+	{ label: "膜材速查", value: "material" }
+]);
+
+const activeTab = ref("video");
+
+const videoList = ref([
+	{ id: 1, title: "隐形车衣标准施工流程", duration: "12:30", category: "隐形车衣", cover: "https://unix.cool-js.com/images/demo/bg1.png" },
+	{ id: 2, title: "玻璃膜裁膜要点", duration: "08:20", category: "窗膜", cover: "https://unix.cool-js.com/images/demo/bg2.png" }
+]);
+
+const materialList = ref([
+	{ id: 1, brand: "XX品牌", model: "隐形车衣 A系列", desc: "高亮耐黄变，质保5年", apply: "全车", note: "环境温度建议 18-28℃" },
+	{ id: 2, brand: "XX品牌", model: "改色膜 B系列", desc: "哑光质感，多色可选", apply: "全车/局部", note: "收边加热勿超过 120℃" }
+]);
+
+function playVideo(item: any) {
+	ui.showToast({ message: "播放：" + item.title });
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+</style>

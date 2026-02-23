@@ -1,0 +1,89 @@
+<template>
+	<cl-page>
+		<cl-topbar title="施工追踪" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view class="card shadow-card">
+				<view class="flex flex-row items-center">
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ order.serviceName }}</cl-text>
+					<cl-tag :type="order.statusType" size="mini" class="ml-auto">{{ order.statusText }}</cl-tag>
+				</view>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">{{ order.storeName }} · {{ order.dateTime }}</cl-text>
+			</view>
+
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">施工进度</cl-text>
+				<cl-progress :value="progressValue" :stroke-width="8"></cl-progress>
+				<view class="steps mt-3">
+					<cl-text :size="12" color="info">已预约 → 已到店 → 清洗 → 裁膜 → 铺膜 → 收边 → 质检 → 已完成</cl-text>
+				</view>
+			</view>
+
+			<view class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">施工相册</cl-text>
+				<view class="photo-grid" v-if="photos.length > 0">
+					<cl-image
+						v-for="(url, i) in photos"
+						:key="i"
+						:src="url"
+						:width="80"
+						:height="80"
+						:pt="{ className: 'rounded-lg' }"
+					></cl-image>
+				</view>
+				<cl-text v-else :size="12" color="info">暂无施工照片</cl-text>
+			</view>
+
+			<view class="card shadow-card">
+				<cl-button type="primary" round class="w-full mb-2" @tap="downloadWorkorder">下载电子工单</cl-button>
+				<cl-button type="primary" round class="w-full mb-2" @tap="downloadWarranty">下载质保卡</cl-button>
+				<cl-button round class="w-full" @tap="contactStore">联系门店</cl-button>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const order = ref({
+	serviceName: "隐形车衣全车",
+	storeName: "XX贴膜旗舰店",
+	dateTime: "2025-02-15 上午",
+	statusText: "施工中",
+	statusType: "warning"
+});
+
+const progressValue = ref(50);
+
+const photos = ref<string[]>([]);
+
+function downloadWorkorder() {
+	ui.showToast({ message: "电子工单下载" });
+}
+
+function downloadWarranty() {
+	ui.showToast({ message: "质保卡下载" });
+}
+
+function contactStore() {
+	ui.showToast({ message: "联系门店" });
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.steps {
+	@apply flex flex-wrap;
+}
+
+.photo-grid {
+	@apply flex flex-row flex-wrap gap-2;
+}
+</style>

@@ -452,8 +452,30 @@ export default {
 	theme: {
 		extend: {
 			colors: {
-				...getPrimary("teal"),
-				...getSurface("zinc")
+				// Figma 规范：Brand/Primary = #0066B1
+				"primary-50": "#EAF3FA",
+				"primary-100": "#D7E8F6",
+				"primary-200": "#B0D1EC",
+				"primary-300": "#88BAE2",
+				"primary-400": "#5FA3D8",
+				"primary-500": "#0066B1",
+				"primary-600": "#005A9D",
+				"primary-700": "#004D88",
+				"primary-800": "#003F6F",
+				"primary-900": "#003058",
+				// Figma 规范：Surface/Background = #F5F5F5, Surface/Card = #FFFFFF, Text/Secondary = #999999
+				surface: "#FFFFFF",
+				"surface-50": "#FAFAFA",
+				"surface-100": "#F5F5F5",
+				"surface-200": "#EAEAEA",
+				"surface-300": "#DADADA",
+				"surface-400": "#BFBFBF",
+				"surface-500": "#999999",
+				"surface-600": "#7A7A7A",
+				"surface-700": "#5A5A5A",
+				"surface-800": "#3D3D3D",
+				"surface-900": "#222222",
+				"surface-950": "#121212"
 			},
 			fontSize: {
 				md: ["1rem", "1.5rem"]

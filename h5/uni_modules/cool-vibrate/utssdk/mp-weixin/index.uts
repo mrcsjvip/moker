@@ -1,5 +1,5 @@
 /**
- * 震动
+ * 震动（mp-weixin）
  * @param {number} duration 震动时间单位ms,ios微信失效
  */
 export function vibrate(duration: number) {

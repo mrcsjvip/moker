@@ -1,0 +1,184 @@
+<template>
+	<cl-page>
+		<cl-topbar title="工单执行" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<template v-else>
+				<view class="card shadow-card">
+					<cl-text :size="12" color="info">{{ order.plate }} · {{ order.serviceName }} · {{ order.customer }}</cl-text>
+					<cl-text :size="14" :pt="{ className: 'font-bold mt-2' }">当前阶段：{{ currentStepName }}</cl-text>
+				</view>
+
+				<view class="card shadow-card">
+					<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">施工进度</cl-text>
+					<cl-progress :value="progressValue" :stroke-width="8"></cl-progress>
+					<view class="steps mt-3">
+						<cl-text :size="12" color="info">{{ stepsText }}</cl-text>
+					</view>
+				</view>
+
+				<view class="card shadow-card">
+					<cl-button type="primary" round class="w-full mb-2" @tap="finishStep">完成本阶段</cl-button>
+					<cl-button round class="w-full mb-2" @tap="uploadPhoto">上传施工照片</cl-button>
+					<cl-button round class="w-full mb-2" @tap="markException">标记异常</cl-button>
+					<cl-button round class="w-full" @tap="toMaterialScan">扫码登记膜卷</cl-button>
+				</view>
+
+				<cl-button v-if="isLastStep" type="primary" round class="w-full mt-2" @tap="submitQuality">全部完成，提交质检</cl-button>
+
+				<view class="card mt-3 shadow-card" @tap="showCooperate">
+					<cl-text :size="12" color="info">呼叫前台/销售 · 引导客户评价</cl-text>
+				</view>
+			</template>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { computed, onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+const workOrderId = ref(0);
+const loading = ref(true);
+
+const order = ref({
+	plate: "",
+	serviceName: "",
+	customer: ""
+});
+
+const stepsList = ref<Array<{ name: string; status: number }>>([]);
+const progressValue = ref(0);
+const isLastStep = ref(false);
+
+const currentStepName = computed(() => {
+	const list = stepsList.value;
+	const idx = list.findIndex(s => s.status === 0);
+	if (idx >= 0) return list[idx].name;
+	if (list.length > 0) return list[list.length - 1].name;
+	return "—";
+});
+
+const stepsText = computed(() => {
+	return stepsList.value.map(s => s.name).join(" → ") || "—";
+});
+
+onMounted(() => {
+	const q = router.query() as UTSJSONObject;
+	const id = q != null ? q["id"] : null;
+	workOrderId.value = id != null ? Number(id) : 0;
+	if (workOrderId.value <= 0) {
+		loading.value = false;
+		return;
+	}
+	request({ url: "/app/workorder/employee/detail?id=" + workOrderId.value, method: "GET" })
+		.then((res) => {
+			const d = res?.data;
+			if (d != null) {
+				order.value = d.order ?? { plate: "", serviceName: "", customer: "" };
+				stepsList.value = Array.isArray(d.steps) ? d.steps : [];
+				progressValue.value = d.progressValue ?? 0;
+				isLastStep.value = d.isLastStep === true;
+			}
+		})
+		.catch(() => {})
+		.finally(() => { loading.value = false; });
+});
+
+function loadDetail() {
+	if (workOrderId.value <= 0) return;
+	request({ url: "/app/workorder/employee/detail?id=" + workOrderId.value, method: "GET" })
+		.then((res) => {
+			const d = res?.data;
+			if (d != null) {
+				order.value = d.order ?? { plate: "", serviceName: "", customer: "" };
+				stepsList.value = Array.isArray(d.steps) ? d.steps : [];
+				progressValue.value = d.progressValue ?? 0;
+				isLastStep.value = d.isLastStep === true;
+			}
+		})
+		.catch(() => {});
+}
+
+function finishStep() {
+	if (workOrderId.value <= 0) return;
+	request({
+		url: "/app/workorder/employee/finishStep",
+		method: "POST",
+		data: { workOrderId: workOrderId.value }
+	})
+		.then(() => {
+			ui.showToast({ message: "本阶段已完成" });
+			loadDetail();
+		})
+		.catch(() => {
+			ui.showToast({ message: "操作失败" });
+		});
+}
+
+function uploadPhoto() {
+	ui.showToast({ message: "上传施工照片" });
+}
+
+function markException() {
+	ui.showToast({ message: "标记异常" });
+}
+
+function toMaterialScan() {
+	router.to("/pages/employee/material-scan");
+}
+
+function loadDetail() {
+	if (workOrderId.value <= 0) return;
+	request({ url: "/app/workorder/employee/detail?id=" + workOrderId.value, method: "GET" })
+		.then((res) => {
+			const d = res?.data;
+			if (d != null) {
+				order.value = d.order ?? { plate: "", serviceName: "", customer: "" };
+				stepsList.value = Array.isArray(d.steps) ? d.steps : [];
+				progressValue.value = d.progressValue ?? 0;
+				isLastStep.value = d.isLastStep === true;
+			}
+		})
+		.catch(() => {});
+}
+
+function submitQuality() {
+	if (workOrderId.value <= 0) return;
+	request({
+		url: "/app/workorder/employee/finishQuality",
+		method: "POST",
+		data: { workOrderId: workOrderId.value }
+	})
+		.then(() => {
+			ui.showToast({ message: "已提交质检" });
+			router.back();
+		})
+		.catch(() => {
+			ui.showToast({ message: "操作失败" });
+		});
+}
+
+function showCooperate() {
+	ui.showToast({ message: "稍后请引导客户点亮五星好评哦！" });
+}
+</script>
+
+<style lang="scss" scoped>
+.empty {
+	@apply py-8;
+}
+
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.steps {
+	@apply flex flex-wrap;
+}
+</style>

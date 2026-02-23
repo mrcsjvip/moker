@@ -12,6 +12,10 @@ export type UserInfo = {
 	city?: string; // 城市
 	district?: string; // 区县
 	birthday?: string; // 生日
+	isEmployee?: boolean; // 是否员工权限
+	isManager?: boolean; // 是否店长权限
+	tenantId?: number | null; // 所属租户/门店ID
+	tenantName?: string | null; // 所属租户/门店名称（员工端展示当前门店）
 	createTime: string; // 创建时间
 	updateTime: string; // 更新时间
 };

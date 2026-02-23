@@ -94,8 +94,7 @@ export function isEmpty(value: any): boolean {
  * @example keys({a: 1, b: 2}) // ['a', 'b']
  */
 export function keys(value: any): string[] {
-	// @ts-ignore
-	return UTSJSONObject.keys(value as UTSJSONObject);
+	return isObject(value) ? Object.keys(value) : [];
 }
 
 /**
@@ -152,8 +151,7 @@ export function get(object: any, path: string, defaultValue: any | null = null):
 		return defaultValue;
 	}
 
-	// @ts-ignore
-	const value = new UTSJSONObject(object).getAny(path);
+	const value = path.split('.').reduce((o: any, k) => (o != null ? o[k] : undefined), object);
 
 	if (isNull(value)) {
 		return defaultValue;
@@ -167,7 +165,9 @@ export function get(object: any, path: string, defaultValue: any | null = null):
  * @example set({a: 1}, 'b', 2) // {a: 1, b: 2}
  */
 export function set(object: any, key: string, value: any | null): void {
-	(object as UTSJSONObject)[key] = value;
+	if (isObject(object)) {
+		object[key] = value;
+	}
 }
 
 /**
@@ -379,8 +379,7 @@ export function groupBy<T>(array: T[], key: string) {
  * @example assign({a: 1}, {b: 2}) // {a: 1, b: 2}
  */
 export function assign(...items: any[]) {
-	// @ts-ignore
-	return UTSJSONObject.assign(...items.map((item) => item as UTSJSONObject));
+	return Object.assign({}, ...items);
 }
 
 /**

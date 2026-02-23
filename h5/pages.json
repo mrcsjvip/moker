@@ -24,9 +24,33 @@
 			"root": "pages/biz",
 			"pages": [
 				{
+					"path": "service-select",
+					"style": {
+						"navigationBarTitleText": "选择服务"
+					}
+				},
+				{
 					"path": "appointment",
 					"style": {
-						"navigationBarTitleText": "预约进店"
+						"navigationBarTitleText": "预约填写"
+					},
+					"meta": {
+						"isAuth": true
+					}
+				},
+				{
+					"path": "appointment-confirm",
+					"style": {
+						"navigationBarTitleText": "预约确认"
+					},
+					"meta": {
+						"isAuth": true
+					}
+				},
+				{
+					"path": "appointment-list",
+					"style": {
+						"navigationBarTitleText": "我的预约"
 					},
 					"meta": {
 						"isAuth": true
@@ -36,6 +60,15 @@
 					"path": "workorder",
 					"style": {
 						"navigationBarTitleText": "我的工单"
+					},
+					"meta": {
+						"isAuth": true
+					}
+				},
+				{
+					"path": "workorder-progress",
+					"style": {
+						"navigationBarTitleText": "施工追踪"
 					},
 					"meta": {
 						"isAuth": true
@@ -54,6 +87,90 @@
 					},
 					"meta": {
 						"isAuth": true
+					}
+				},
+				{
+					"path": "vehicle-list",
+					"style": {
+						"navigationBarTitleText": "我的车辆"
+					},
+					"meta": {
+						"isAuth": true
+					}
+				}
+			]
+		},
+		{
+			"root": "pages/employee",
+			"pages": [
+				{
+					"path": "index",
+					"style": {
+						"navigationBarTitleText": "今日任务",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "task-list",
+					"style": {
+						"navigationBarTitleText": "工单",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "sign",
+					"style": {
+						"navigationBarTitleText": "到店签到"
+					}
+				},
+				{
+					"path": "task",
+					"style": {
+						"navigationBarTitleText": "工单执行"
+					}
+				},
+				{
+					"path": "material-scan",
+					"style": {
+						"navigationBarTitleText": "物料扫码"
+					}
+				},
+				{
+					"path": "profile",
+					"style": {
+						"navigationBarTitleText": "个人中心",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "knowledge",
+					"style": {
+						"navigationBarTitleText": "知识赋能"
+					}
+				},
+				{
+					"path": "manager-index",
+					"style": {
+						"navigationBarTitleText": "店长工作台",
+						"navigationStyle": "custom"
+					}
+				},
+				{
+					"path": "manager-appointments",
+					"style": {
+						"navigationBarTitleText": "预约列表"
+					}
+				},
+				{
+					"path": "manager-staff",
+					"style": {
+						"navigationBarTitleText": "员工"
+					}
+				},
+				{
+					"path": "manager-stats",
+					"style": {
+						"navigationBarTitleText": "数据概览"
 					}
 				}
 			]

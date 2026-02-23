@@ -159,10 +159,16 @@ export const setTheme = (value: Theme) => {
 	// #ifdef H5
 	setH5();
 	// #endif
+
+	// #ifdef MP
+	setMpTheme();
+	// #endif
 };
 
-// 设置 H5 下的主题色
+// 设置 H5 下的主题色（仅 H5 环境存在 document/window）
 export const setH5 = () => {
+	if (typeof document === "undefined" || typeof window === "undefined") return;
+
 	const bgContentColor = getConfig("bgContentColor");
 	const tabBgColor = getConfig("tabBgColor");
 	const navBgColor = getConfig("navBgColor");
@@ -201,6 +207,28 @@ export const setH5 = () => {
 		},
 		"*"
 	);
+};
+
+// 设置小程序下的导航与窗口背景，保证各页面主题一致
+export const setMpTheme = () => {
+	const navBgColor = getConfig("navBgColor");
+	const navTextStyle = getConfig("navTextStyle");
+	const bgColor = getConfig("bgColor") || getConfig("bgContentColor");
+
+	// #ifdef MP
+	uni.setNavigationBarColor({
+		frontColor: navTextStyle == "black" ? "#000000" : "#ffffff",
+		backgroundColor: navBgColor
+	});
+
+	// 不同小程序基础库实现差异较大，使用 ts-ignore 保持兼容
+	// @ts-ignore
+	uni.setBackgroundColor?.({
+		backgroundColor: bgColor,
+		backgroundColorTop: bgColor,
+		backgroundColorBottom: bgColor
+	});
+	// #endif
 };
 
 /**
@@ -244,6 +272,7 @@ export const initTheme = () => {
 	uni.onHostThemeChange((res) => {
 		setTheme(res.hostTheme);
 	});
+	setMpTheme();
 	// #endif
 
 	// #ifdef H5

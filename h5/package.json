@@ -2,19 +2,42 @@
 	"name": "cool-unix",
 	"version": "8.1.0",
 	"license": "MIT",
+	"scripts": {
+		"dev": "vite",
+		"dev:mp-weixin": "UNI_INPUT_DIR=. uni -p mp-weixin",
+		"build": "vite build",
+		"build:mp-weixin": "UNI_INPUT_DIR=. uni build -p mp-weixin",
+		"postinstall": "node scripts/patch-mp-weixin.js"
+	},
 	"dependencies": {
+		"@vue/reactivity": "3.4.21",
+		"@vue/runtime-core": "3.4.21",
+		"@vue/runtime-dom": "3.4.21",
 		"hammer-touchemulator": "^0.0.2",
-		"vue": "^3.5.13",
+		"vue": "3.4.21",
 		"weixin-js-sdk": "^1.6.5"
 	},
 	"devDependencies": {
 		"@cool-vue/unix": "1.1.0-beta.6",
 		"@dcloudio/types": "^3.4.16",
+		"@dcloudio/uni-app": "3.0.0-alpha-5000120260211001",
+		"@dcloudio/uni-components": "3.0.0-alpha-5000120260211001",
+		"@dcloudio/vite-plugin-uni": "3.0.0-alpha-5000120260211001",
 		"@types/node": "^24.0.15",
 		"@vue/tsconfig": "^0.7.0",
 		"postcss": "^8.5.3",
 		"prettier": "^3.5.3",
+		"sass-embedded": "^1.97.3",
 		"tailwindcss": "3.4.17",
 		"vite": "^6.3.5"
+	},
+	"pnpm": {
+		"overrides": {
+			"vue": "3.4.21",
+			"@vue/shared": "3.4.21",
+			"@vue/reactivity": "3.4.21",
+			"@vue/runtime-core": "3.4.21",
+			"@vue/runtime-dom": "3.4.21"
+		}
 	}
 }

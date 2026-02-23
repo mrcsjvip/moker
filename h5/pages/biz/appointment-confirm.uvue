@@ -1,0 +1,129 @@
+<template>
+	<cl-page>
+		<cl-topbar title="预约确认" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<view v-if="loading" class="empty">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<view v-else class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">预约信息</cl-text>
+				<cl-list border>
+					<cl-list-item label="服务项目">
+						<cl-text :size="14">{{ summary.serviceName }}</cl-text>
+					</cl-list-item>
+					<cl-list-item label="门店">
+						<cl-text :size="14">{{ summary.storeName }}</cl-text>
+					</cl-list-item>
+					<cl-list-item label="时间">
+						<cl-text :size="14">{{ summary.dateTime }}</cl-text>
+					</cl-list-item>
+					<cl-list-item label="车辆">
+						<cl-text :size="14">{{ summary.vehicle }}</cl-text>
+					</cl-list-item>
+					<cl-list-item label="联系人">
+						<cl-text :size="14">{{ summary.contact }}</cl-text>
+					</cl-list-item>
+				</cl-list>
+			</view>
+
+			<view v-if="!loading" class="card shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold' }">预估费用</cl-text>
+				<cl-text :size="20" :pt="{ className: 'font-bold mt-2' }" class="amount">¥{{ summary.amount }}</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">最终以店内检测为准</cl-text>
+			</view>
+
+			<cl-noticebar v-if="!loading" :list="noticeList" :pt="{ className: 'mb-4' }"></cl-noticebar>
+
+			<view v-if="!loading" class="btn-row">
+				<cl-button round class="flex-1" @tap="cancel">取消</cl-button>
+				<cl-button type="primary" round class="flex-1 ml-3" :loading="confirming" @tap="confirm">确认预约</cl-button>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const noticeList = ref(["预约成功后将收到短信/微信模板消息通知"]);
+const loading = ref(true);
+const confirming = ref(false);
+
+const summary = ref({
+	serviceName: "—",
+	storeName: "—",
+	dateTime: "—",
+	vehicle: "—",
+	contact: "—",
+	amount: "待定"
+});
+
+const appointmentId = ref(0);
+
+onMounted(async () => {
+	const q = router.query() as Record<string, string | undefined>;
+	const id = q?.id ? Number(q.id) : 0;
+	appointmentId.value = id;
+	if (id <= 0) {
+		loading.value = false;
+		return;
+	}
+	try {
+		const res = await request({ url: "/app/appointment/my/info?id=" + id, method: "GET" });
+		const d = res?.data;
+		if (d) {
+			summary.value = {
+				serviceName: d.serviceName ?? "—",
+				storeName: d.storeName ?? "—",
+				dateTime: d.dateTime ?? "—",
+				vehicle: d.vehicle ?? "—",
+				contact: d.contact ?? "—",
+				amount: d.amount ?? "待定"
+			};
+		}
+	} catch {
+		ui.showToast({ message: "加载失败" });
+	}
+	loading.value = false;
+});
+
+function cancel() {
+	router.back();
+}
+
+async function confirm() {
+	if (appointmentId.value <= 0) return;
+	confirming.value = true;
+	try {
+		await request({
+			url: "/app/appointment/my/confirm",
+			method: "POST",
+			data: { id: appointmentId.value }
+		});
+		ui.showToast({ message: "预约成功" });
+		router.to("/pages/biz/appointment-list");
+	} catch {
+		ui.showToast({ message: "确认失败" });
+	}
+	confirming.value = false;
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+
+.btn-row {
+	@apply flex flex-row;
+}
+
+.amount {
+	color: #0066b1;
+}
+</style>

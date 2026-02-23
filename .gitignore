@@ -1,0 +1,81 @@
+# -----------------------------------------------------------------------------
+# moker 项目根目录 .gitignore（覆盖 server / admin / h5 等子目录）
+# -----------------------------------------------------------------------------
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Editor / IDE ---
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+*.un~
+.project
+.hbuilderx
+
+# --- Node ---
+node_modules/
+.pnpm-store/
+pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+*.tsbuildinfo
+*.tsbuildinfo.*
+
+# --- Build / Output ---
+dist/
+build/
+run/
+unpackage/
+dist-ssr/
+*.local
+
+# --- Logs / Cache / Coverage ---
+logs/
+cache/
+coverage/
+.nyc_output/
+
+# --- Lock（按需：若希望统一用 pnpm 可保留 pnpm-lock，忽略其余）
+# package-lock.json
+# yarn.lock
+
+# --- Server 相关 ---
+server/logs/
+server/cache/
+server/run/
+server/build/
+server/dist/
+server/data/*
+server/public/uploads/*
+launch.json
+
+# --- Admin 相关 ---
+admin/dist/
+vite.config.ts.timestamp*
+
+# --- H5 / uni-app 相关 ---
+h5/dist/
+h5/unpackage/
+
+# --- 环境与密钥（勿提交）---
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# --- 其他 ---
+*.log
+*.tmp
+*.temp
+.temp/
+tmp/
+temp/

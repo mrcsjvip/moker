@@ -1,0 +1,74 @@
+<template>
+	<cl-page>
+		<cl-topbar title="物料扫码" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<cl-text :size="16" :pt="{ className: 'font-bold mb-3' }">登记本次使用膜材</cl-text>
+
+			<view class="scan-area card shadow-card">
+				<cl-icon name="qr-scan-2-line" :size="64" color="info"></cl-icon>
+				<cl-text :size="14" color="info" :pt="{ className: 'mt-3' }">扫描膜卷编号</cl-text>
+				<cl-button type="primary" round class="mt-4" @tap="doScan">扫码</cl-button>
+			</view>
+
+			<view class="card mt-3 shadow-card">
+				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">已登记</cl-text>
+				<view v-if="scannedList.length === 0">
+					<cl-text :size="12" color="info">暂无</cl-text>
+				</view>
+				<view v-else class="list">
+					<view class="list-item flex flex-row items-center" v-for="(item, i) in scannedList" :key="i">
+						<cl-text :size="14">{{ item.code }}</cl-text>
+						<cl-text :size="12" color="info" v-if="item.name">{{ item.name }}</cl-text>
+						<cl-icon name="delete-bin-line" :size="18" class="ml-auto" @tap="remove(i)"></cl-icon>
+					</view>
+				</view>
+			</view>
+
+			<cl-button round class="w-full mt-4" @tap="finish">完成登记</cl-button>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref } from "vue";
+import { router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const scannedList = ref<any>([
+	{ code: "M202501001", name: "XX品牌 隐形车衣" }
+]);
+
+function doScan() {
+	ui.showToast({ message: "调起扫码" });
+	scannedList.value.push({ code: "M202501002" });
+}
+
+function remove(i: number) {
+	scannedList.value.splice(i, 1);
+}
+
+function finish() {
+	router.back();
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+
+.scan-area {
+	@apply flex flex-col items-center justify-center py-8;
+}
+
+.list {
+	@apply flex flex-col gap-2;
+}
+
+.list-item {
+	@apply py-2 border-b border-solid border-surface-200;
+}
+</style>

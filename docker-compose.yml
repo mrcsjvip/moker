@@ -1,5 +1,8 @@
-version: "3.9"
-
+# 本地开发：同时运行 Redis、服务端、管理后台、H5
+# 使用前：确保本机 MySQL 已启动并创建好数据库（默认 moker），或修改 DB_* 环境变量
+# 启动：docker compose up -d
+# 访问：服务端 http://localhost:8002 | Admin http://localhost:9000 | H5 http://localhost:9900
+# 若 8002 仍冲突，可改为 "8003:8001" 等
 services:
   redis:
     image: redis:7-alpine
@@ -21,7 +24,8 @@ services:
       DB_NAME: moker
     command: sh -c "npm install && npm run dev"
     ports:
-      - "8001:8001"
+      - "8002:8001"
+      # 调试时与 docker-compose.debug.yml 一起使用，暴露 9229 供附加
     depends_on:
       - redis
 
@@ -31,10 +35,30 @@ services:
     volumes:
       - ./:/app
     environment:
+      # Vite 代理目标：Admin 容器内代理请求到 server，故用服务名
       VITE_API_HOST: http://server:8001
     command: sh -c "npm install && npm run dev"
     ports:
       - "9000:9000"
     depends_on:
       - server
+
+  h5:
+    image: node:20-alpine
+    working_dir: /app/h5
+    volumes:
+      - ./:/app
+      - h5_node_modules:/app/h5/node_modules
+    environment:
+      UNI_INPUT_DIR: /app/h5
+      VITE_PROXY_TARGET: http://server:8001
+    # 使用 pnpm 与仓库内 pnpm-lock.yaml 一致，避免 npm install 报 edgesOut 等冲突
+    command: sh -c "corepack enable && pnpm install && pnpm run dev -- --host 0.0.0.0"
+    ports:
+      - "9900:9900"
+    depends_on:
+      - server
+
+volumes:
+  h5_node_modules:
 

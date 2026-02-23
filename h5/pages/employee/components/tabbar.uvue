@@ -1,0 +1,25 @@
+<template>
+	<cl-tabbar :model-value="path" :list="list" @select="onSelect"></cl-tabbar>
+</template>
+
+<script setup lang="ts">
+import { router, t } from "@/.cool";
+import type { ClTabbarItem } from "@/uni_modules/cool-ui";
+import { computed } from "vue";
+
+defineOptions({
+	name: "employee-tabbar"
+});
+
+const path = computed(() => router.path());
+
+const list = computed<ClTabbarItem[]>(() => [
+	{ icon: "/static/icon/tabbar/home.png", selectedIcon: "/static/icon/tabbar/home2.png", value: "/pages/employee/index", text: t("任务") },
+	{ icon: "/static/icon/tabbar/template.png", selectedIcon: "/static/icon/tabbar/template2.png", value: "/pages/employee/task-list", text: t("工单") },
+	{ icon: "/static/icon/tabbar/my.png", selectedIcon: "/static/icon/tabbar/my2.png", value: "/pages/employee/profile", text: t("我的") }
+]);
+
+function onSelect(item: ClTabbarItem) {
+	router.to(item.value);
+}
+</script>

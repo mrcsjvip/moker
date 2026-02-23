@@ -44,7 +44,7 @@
         "darkmode" : true,
         "router" : {
             "mode" : "",
-            "base" : "./"
+            "base" : "/"
         },
         "title" : "cool-unix"
     },

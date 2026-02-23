@@ -73,6 +73,28 @@ export class BaseSysLoginService extends BaseService {
   }
 
   /**
+   * 根据租户ID获取单条租户信息（用于扫码登录页回显；仅返回未过期的租户）
+   */
+  async getTenantInfo(tenantId: number) {
+    if (!this.tenantConfig?.enable || tenantId == null) {
+      return null;
+    }
+    const tid = Number(tenantId);
+    if (Number.isNaN(tid)) return null;
+    const today = _.split(new Date().toISOString(), 'T')[0]; // YYYY-MM-DD
+    return noTenant(this.ctx, async () => {
+      return this.baseSysTenantEntity
+        .createQueryBuilder('t')
+        .select(['t.id', 't.name'])
+        .where('t.id = :tid', { tid })
+        .andWhere('(t.expireDate IS NULL OR t.expireDate >= :today)', {
+          today,
+        })
+        .getOne();
+    });
+  }
+
+  /**
    * 校验租户是否在有效期内（过期则不允许登录）
    */
   private async checkTenantExpire(tenantId: number | null): Promise<void> {

@@ -11,6 +11,8 @@ export type Token = {
 	refreshExpire: number; // 刷新token过期时间（秒）
 };
 
+export type UserPortal = "user" | "employee" | "manager";
+
 export class User {
 	/**
 	 * 用户信息，响应式对象
@@ -36,6 +38,119 @@ export class User {
 		if (userInfo != null && isObject(userInfo)) {
 			this.set(userInfo);
 		}
+	}
+
+	/**
+	 * 当前登录端口（用户端/员工端/店长端）
+	 */
+	getPortal(): UserPortal {
+		const portal = storage.get("userPortal") as UserPortal | null;
+		return portal ?? "user";
+	}
+
+	/**
+	 * 设置当前登录端口
+	 */
+	setPortal(portal: UserPortal) {
+		storage.set("userPortal", portal, 0);
+	}
+
+	/**
+	 * 根据用户信息解析角色能力
+	 */
+	getRoleAccess() {
+		const info = (this.info.value ?? {}) as any;
+		// 后端已明确返回时，直接使用明确字段
+		const hasExplicitRoleFlags =
+			typeof info.isEmployee == "boolean" || typeof info.isManager == "boolean";
+		if (hasExplicitRoleFlags) {
+			const canManager = info.isManager === true;
+			const canEmployee = info.isEmployee === true || canManager;
+			return {
+				canEmployee,
+				canManager
+			};
+		}
+
+		let canEmployee = false;
+		let canManager = false;
+
+		// 1) 显式布尔字段
+		canEmployee = canEmployee || info.isEmployee === true;
+		canManager = canManager || info.isManager === true;
+
+		// 2) 从多种角色字段中提取角色标识
+		const roleSources = [
+			info.role,
+			info.roles,
+			info.roleCode,
+			info.roleCodes,
+			info.userRole,
+			info.userRoles,
+			info.post,
+			info.posts,
+			info.identity,
+			info.identities
+		];
+
+		const tokens: string[] = [];
+
+		const pushToken = (v: any) => {
+			if (v == null) return;
+			if (typeof v == "string" || typeof v == "number") {
+				tokens.push(String(v).toLowerCase());
+				return;
+			}
+			if (Array.isArray(v)) {
+				v.forEach((item) => pushToken(item));
+				return;
+			}
+			if (typeof v == "object") {
+				// 常见角色对象字段
+				pushToken(v.code);
+				pushToken(v.name);
+				pushToken(v.roleCode);
+				pushToken(v.roleName);
+				pushToken(v.value);
+				return;
+			}
+		};
+
+		roleSources.forEach((v) => pushToken(v));
+
+		// 3) 关键字匹配（中英文）
+		const hasManagerKeyword = tokens.some(
+			(s) =>
+				s.includes("manager") ||
+				s.includes("store_manager") ||
+				s.includes("shop_manager") ||
+				s.includes("店长")
+		);
+		const hasEmployeeKeyword = tokens.some(
+			(s) =>
+				s.includes("employee") ||
+				s.includes("staff") ||
+				s.includes("technician") ||
+				s.includes("worker") ||
+				s.includes("员工") ||
+				s.includes("技师")
+		);
+
+		canManager = canManager || hasManagerKeyword;
+		canEmployee = canEmployee || hasEmployeeKeyword || canManager; // 店长默认可进入员工端
+
+		return {
+			canEmployee,
+			canManager
+		};
+	}
+
+	hasEmployeeAccess() {
+		return this.getRoleAccess().canEmployee;
+	}
+
+	hasManagerAccess() {
+		return this.getRoleAccess().canManager;
 	}
 
 	/**
@@ -119,6 +234,7 @@ export class User {
 		storage.remove("userInfo");
 		storage.remove("token");
 		storage.remove("refreshToken");
+		storage.remove("userPortal");
 		this.token = null;
 		this.remove();
 	}

@@ -1,0 +1,122 @@
+<template>
+	<cl-page>
+		<cl-topbar title="选择服务" :show-back="true" safe-area-top></cl-topbar>
+
+		<view class="p-3">
+			<!-- 分类列表：全车贴膜、局部贴膜、隐形车衣、改色膜、窗膜 -->
+			<cl-list border>
+				<cl-list-item
+					v-for="item in categories"
+					:key="item.value"
+					:label="item.label"
+					icon="car-line"
+					arrow
+					hoverable
+					@tap="selectCategory(item)"
+				>
+				</cl-list-item>
+			</cl-list>
+
+			<view class="section-title mt-4">
+				<cl-text :size="14" :pt="{ className: 'font-bold' }">为您推荐</cl-text>
+			</view>
+			<view class="recommend-list">
+				<view
+					class="recommend-card shadow-card"
+					:class="{ active: selectedService?.id === r.id }"
+					v-for="r in recommends"
+					:key="r.id"
+					@tap="selectService(r)"
+				>
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ r.name }}</cl-text>
+					<cl-text :size="12" color="info">预估 ¥{{ r.guidePrice }} · 约 {{ r.duration ? (r.duration / 60).toFixed(1) : 0 }}h</cl-text>
+				</view>
+			</view>
+
+			<view class="section-title mt-4">
+				<cl-text :size="14" :pt="{ className: 'font-bold' }">服务说明</cl-text>
+			</view>
+			<view class="card shadow-card">
+				<cl-text :size="12" color="info">工时、配件、预估价格、所需时间以到店检测为准。</cl-text>
+			</view>
+
+			<cl-button type="primary" round class="w-full mt-4" @tap="nextStep">
+				下一步：选择门店与时间
+			</cl-button>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+
+const categories = ref([
+	{ label: "全车贴膜", value: "full" },
+	{ label: "局部贴膜", value: "partial" },
+	{ label: "隐形车衣", value: "ppf" },
+	{ label: "改色膜", value: "color" },
+	{ label: "窗膜", value: "window" }
+]);
+
+type ServiceItem = { id: number; name: string; guidePrice: number; duration: number };
+const recommends = ref<ServiceItem[]>([]);
+const selectedService = ref<ServiceItem | null>(null);
+
+onMounted(async () => {
+	try {
+		const res = await request({ url: "/app/service/list", method: "GET" });
+		const list = Array.isArray(res?.data) ? res.data : [];
+		recommends.value = list.map((s: any) => ({
+			id: s.id,
+			name: s.name ?? "—",
+			guidePrice: Number(s.guidePrice) || 0,
+			duration: Number(s.duration) || 0
+		}));
+	} catch {
+		recommends.value = [];
+	}
+});
+
+function selectCategory(item: any) {
+	// 可展开子项或筛选推荐
+}
+
+function selectService(r: ServiceItem) {
+	selectedService.value = r;
+}
+
+function nextStep() {
+	const s = selectedService.value;
+	if (!s) {
+		ui.showToast({ message: "请先选择服务" });
+		return;
+	}
+	const price = s.guidePrice ? String(s.guidePrice) : "";
+	const hours = s.duration ? (s.duration / 60).toFixed(1) : "";
+	router.to(
+		"/pages/biz/appointment?serviceId=" + s.id + "&serviceName=" + encodeURIComponent(s.name) + (price ? "&price=" + encodeURIComponent(price) : "")
+	);
+}
+</script>
+
+<style lang="scss" scoped>
+.section-title {
+	@apply mb-2;
+}
+
+.recommend-list {
+	@apply flex flex-col gap-2 mb-2;
+}
+
+.recommend-card {
+	@apply bg-white rounded-xl p-3;
+}
+
+.card {
+	@apply bg-white rounded-xl p-3;
+}
+</style>

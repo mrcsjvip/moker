@@ -1,0 +1,10 @@
+# 调试用：在 docker-compose 基础上为 server 开启 Node 调试
+# 使用：docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d
+# 然后在本机用 Cursor/VS Code 或 Chrome 附加到 localhost:9229
+services:
+  server:
+    environment:
+      NODE_OPTIONS: "--inspect=0.0.0.0:9229"
+    ports:
+      - "8002:8001"
+      - "9229:9229"
