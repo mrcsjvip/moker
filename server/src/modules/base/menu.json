@@ -469,6 +469,18 @@
                                 "childMenus": []
                             }
                         ]
+                    },
+                    {
+                        "name": "小程序轮播图",
+                        "router": "/sys/app-banner",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-picture",
+                        "orderNum": 1,
+                        "viewPath": "modules/base/views/app-banner.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": []
                     }
                 ]
             },

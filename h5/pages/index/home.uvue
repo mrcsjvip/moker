@@ -15,8 +15,8 @@
 		</cl-topbar>
 
 		<view class="p-3">
-			<!-- C-01 Banner 轮播 -->
-			<view class="banner-wrap">
+			<!-- C-01 Banner 轮播（按租户从配置拉取） -->
+			<view class="banner-wrap" v-if="bannerList.length > 0">
 				<cl-banner :list="bannerList" :height="160"></cl-banner>
 			</view>
 
@@ -65,16 +65,30 @@
 </template>
 
 <script setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { request, useStore } from "@/.cool";
 import { router } from "@/.cool";
 import { config } from "@/config";
 import CustomTabbar from "./components/tabbar.uvue";
 
-const bannerList = ref([
-	"https://unix.cool-js.com/images/demo/bg1.png",
-	"https://unix.cool-js.com/images/demo/bg2.png",
-	"https://unix.cool-js.com/images/demo/bg3.png"
-]);
+const { user: userStore } = useStore();
+
+const bannerList = ref<string[]>([]);
+
+onMounted(() => {
+	const tenantId = userStore.info.value?.tenantId ?? null;
+	const q = tenantId != null ? "?tenantId=" + tenantId : "";
+	request({ url: "/app/base/config/banner" + q, method: "GET" })
+		.then((res) => {
+			const data = res?.data;
+			if (Array.isArray(data) && data.length > 0) {
+				bannerList.value = data.map((item) =>
+					typeof item === "string" ? item : (item.imageUrl ?? "")
+				).filter(Boolean);
+			}
+		})
+		.catch(() => {});
+});
 
 const quickActions = [
 	{ label: "预约贴膜", icon: "car-line", path: "/pages/biz/service-select" },

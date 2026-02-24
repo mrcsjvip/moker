@@ -5,7 +5,13 @@ import { IsNull, Repository } from 'typeorm';
 import { BaseSysConfEntity } from '../../entity/sys/conf';
 
 /** 业务配置键（app 端可获取，按租户隔离） */
-export const BUSINESS_CONF_KEYS = ['service_phone'] as const;
+export const BUSINESS_CONF_KEYS = ['service_phone', 'app_banner_list'] as const;
+
+/** 小程序轮播图单项 */
+export type AppBannerItem = { imageUrl: string; linkUrl?: string; title?: string };
+
+/** 轮播图配置默认值 */
+export const APP_BANNER_DEFAULT: AppBannerItem[] = [];
 
 /**
  * 系统配置（按租户隔离：先取当前租户配置，无则取全局 tenantId=null）
@@ -73,5 +79,34 @@ export class BaseSysConfService extends BaseService {
         this.baseSysConfEntity.create({ cKey, cValue, tenantId: tid } as any)
       );
     }
+  }
+
+  private static readonly BANNER_KEY = 'app_banner_list';
+
+  /**
+   * 获取小程序轮播图列表（按租户：先租户后全局）
+   */
+  async getBannerList(tenantId?: number | null): Promise<AppBannerItem[]> {
+    const raw = await this.getValue(BaseSysConfService.BANNER_KEY, tenantId);
+    if (raw == null || raw === '') return [...APP_BANNER_DEFAULT];
+    try {
+      const arr = JSON.parse(raw);
+      if (!Array.isArray(arr)) return [...APP_BANNER_DEFAULT];
+      return arr.filter(
+        (item: any) => item != null && typeof item === 'object' && typeof item.imageUrl === 'string'
+      );
+    } catch {
+      return [...APP_BANNER_DEFAULT];
+    }
+  }
+
+  /**
+   * 设置小程序轮播图列表（按租户）
+   */
+  async setBannerList(tenantId: number | null, list: AppBannerItem[]): Promise<void> {
+    const arr = Array.isArray(list)
+      ? list.filter(item => item != null && typeof item.imageUrl === 'string')
+      : [];
+    await this.setValue(BaseSysConfService.BANNER_KEY, JSON.stringify(arr), tenantId);
   }
 }
