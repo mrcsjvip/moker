@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="施工追踪" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
 			<view class="card shadow-card">
 				<view class="flex flex-row items-center">

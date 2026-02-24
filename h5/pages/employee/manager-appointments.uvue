@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="预约列表" :show-back="true" safe-area-top></cl-topbar>
-
 		<cl-tabs v-model="activeTab" :list="tabList" fill :pt="{ className: 'mb-3' }"></cl-tabs>
 
 		<view class="p-3">

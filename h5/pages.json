@@ -97,6 +97,15 @@
 					"meta": {
 						"isAuth": true
 					}
+				},
+				{
+					"path": "vehicle-edit",
+					"style": {
+						"navigationBarTitleText": "添加/编辑车辆"
+					},
+					"meta": {
+						"isAuth": true
+					}
 				}
 			]
 		},

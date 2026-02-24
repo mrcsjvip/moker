@@ -1,0 +1,133 @@
+<template>
+	<cl-page>
+		<view class="p-3">
+			<view class="card shadow-card">
+				<cl-list border>
+					<cl-list-item label="车牌号" justify="start">
+						<cl-input v-model="form.plateNumber" placeholder="请输入车牌号"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="品牌（选填）" justify="start">
+						<cl-input v-model="form.brand" placeholder="如：丰田、宝马"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="车型（选填）" justify="start">
+						<cl-input v-model="form.model" placeholder="如：凯美瑞、3系"></cl-input>
+					</cl-list-item>
+					<cl-list-item label="VIN码（选填）" justify="start">
+						<cl-input v-model="form.vin" placeholder="车架号"></cl-input>
+					</cl-list-item>
+				</cl-list>
+			</view>
+			<cl-button type="primary" round class="w-full mt-4" :loading="submitting" @tap="submit">保存</cl-button>
+			<cl-button v-if="isEdit" round class="w-full mt-3" @tap="confirmDelete">删除该车辆</cl-button>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { onMounted, ref } from "vue";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+const vehicleId = ref(0);
+const isEdit = ref(false);
+const submitting = ref(false);
+
+const form = ref({
+	plateNumber: "",
+	brand: "",
+	model: "",
+	vin: ""
+});
+
+onMounted(async () => {
+	const q = router.query() as Record<string, string | undefined>;
+	const id = q?.id ? Number(q.id) : 0;
+	vehicleId.value = id;
+	isEdit.value = id > 0;
+	if (isEdit.value) {
+		try {
+			const res = await request({ url: "/app/vehicle/my/info?id=" + id, method: "GET" });
+			const d = res?.data;
+			if (d) {
+				form.value = {
+					plateNumber: d.plateNumber ?? "",
+					brand: d.brand ?? "",
+					model: d.model ?? "",
+					vin: d.vin ?? ""
+				};
+			}
+		} catch {
+			ui.showToast({ message: "加载失败" });
+		}
+	}
+});
+
+async function submit() {
+	const f = form.value;
+	if (!f.plateNumber?.trim()) {
+		ui.showToast({ message: "请输入车牌号" });
+		return;
+	}
+	submitting.value = true;
+	try {
+		if (isEdit.value) {
+			await request({
+				url: "/app/vehicle/my/update",
+				method: "POST",
+				data: {
+					id: vehicleId.value,
+					plateNumber: f.plateNumber.trim(),
+					brand: f.brand.trim() || undefined,
+					model: f.model.trim() || undefined,
+					vin: f.vin.trim() || undefined
+				}
+			});
+			ui.showToast({ message: "已更新" });
+		} else {
+			await request({
+				url: "/app/vehicle/my/add",
+				method: "POST",
+				data: {
+					plateNumber: f.plateNumber.trim(),
+					brand: f.brand.trim() || undefined,
+					model: f.model.trim() || undefined,
+					vin: f.vin.trim() || undefined
+				}
+			});
+			ui.showToast({ message: "已添加" });
+		}
+		router.back();
+	} catch (e: any) {
+		ui.showToast({ message: e?.message ?? "操作失败" });
+	}
+	submitting.value = false;
+}
+
+function confirmDelete() {
+	uni.showModal({
+		title: "删除车辆",
+		content: "确定要删除该车辆吗？",
+		success: async (res) => {
+			if (!res.confirm) return;
+			try {
+				await request({
+					url: "/app/vehicle/my/delete",
+					method: "POST",
+					data: { id: vehicleId.value }
+				});
+				ui.showToast({ message: "已删除" });
+				router.back();
+			} catch (e: any) {
+				ui.showToast({ message: e?.message ?? "删除失败" });
+			}
+		}
+	});
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4 mb-3;
+}
+</style>

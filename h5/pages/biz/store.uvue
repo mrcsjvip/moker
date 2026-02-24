@@ -1,6 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="选择门店" :show-back="true" safe-area-top></cl-topbar>
 		<view class="p-3">
 			<view v-if="loading" class="empty">
 				<cl-text :size="14" color="info">加载中...</cl-text>

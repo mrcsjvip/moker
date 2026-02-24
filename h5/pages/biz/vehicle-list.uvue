@@ -1,6 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="我的车辆" :show-back="true" safe-area-top></cl-topbar>
 		<view class="p-3">
 			<view v-if="loading" class="empty">
 				<cl-text :size="14" color="info">加载中...</cl-text>
@@ -8,18 +7,26 @@
 			<view v-else-if="list.length === 0" class="empty">
 				<cl-icon name="car-line" :size="48" color="info"></cl-icon>
 				<cl-text :size="16" color="info" :pt="{ className: 'mt-3' }">暂无车辆</cl-text>
-				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">预约时将自动添加车辆信息</cl-text>
+				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">添加常用车辆，预约时可直接选择</cl-text>
+				<cl-button type="primary" round class="mt-4" @tap="toAdd">添加车辆</cl-button>
 			</view>
-			<view v-else class="list">
-				<view class="card shadow-card" v-for="item in list" :key="item.id">
-					<view class="flex flex-row items-center">
-						<cl-text :size="16" :pt="{ className: 'font-bold' }">{{ item.plateNumber }}</cl-text>
+			<view v-else>
+				<view class="list">
+					<view class="card shadow-card" v-for="item in list" :key="item.id">
+						<view class="flex flex-row items-center">
+							<cl-text :size="16" :pt="{ className: 'font-bold' }">{{ item.plateNumber }}</cl-text>
+							<view class="ml-auto op-row">
+								<cl-button size="mini" @tap="toEdit(item)">编辑</cl-button>
+								<cl-button size="mini" @tap="doDelete(item)">删除</cl-button>
+							</view>
+						</view>
+						<cl-text v-if="item.model || item.brand" :size="12" color="info" :pt="{ className: 'mt-2' }">
+							{{ [item.brand, item.model].filter(Boolean).join(" · ") || "—" }}
+						</cl-text>
+						<cl-text v-if="item.vin" :size="12" color="info">VIN {{ item.vin }}</cl-text>
 					</view>
-					<cl-text v-if="item.model || item.brand" :size="12" color="info" :pt="{ className: 'mt-2' }">
-						{{ [item.brand, item.model].filter(Boolean).join(" · ") || "—" }}
-					</cl-text>
-					<cl-text v-if="item.vin" :size="12" color="info">VIN {{ item.vin }}</cl-text>
 				</view>
+				<cl-button type="primary" round class="w-full mt-4" @tap="toAdd">添加车辆</cl-button>
 			</view>
 		</view>
 	</cl-page>
@@ -27,7 +34,10 @@
 
 <script lang="ts" setup>
 import { onMounted, ref } from "vue";
-import { request } from "@/.cool";
+import { request, router } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
 
 type VehicleItem = {
 	id: number;
@@ -40,7 +50,8 @@ type VehicleItem = {
 const list = ref<VehicleItem[]>([]);
 const loading = ref(true);
 
-onMounted(async () => {
+async function loadList() {
+	loading.value = true;
 	try {
 		const res = await request({ url: "/app/vehicle/my/list", method: "GET" });
 		list.value = Array.isArray(res?.data) ? res.data : [];
@@ -48,7 +59,38 @@ onMounted(async () => {
 		list.value = [];
 	}
 	loading.value = false;
-});
+}
+
+onMounted(loadList);
+
+function toAdd() {
+	uni.navigateTo({ url: "/pages/biz/vehicle-edit" });
+}
+
+function toEdit(item: VehicleItem) {
+	uni.navigateTo({ url: "/pages/biz/vehicle-edit?id=" + item.id });
+}
+
+function doDelete(item: VehicleItem) {
+	uni.showModal({
+		title: "删除车辆",
+		content: "确定要删除「" + item.plateNumber + "」吗？",
+		success: async (res) => {
+			if (!res.confirm) return;
+			try {
+				await request({
+					url: "/app/vehicle/my/delete",
+					method: "POST",
+					data: { id: item.id }
+				});
+				ui.showToast({ message: "已删除" });
+				loadList();
+			} catch (e: any) {
+				ui.showToast({ message: e?.message ?? "删除失败" });
+			}
+		}
+	});
+}
 </script>
 
 <style lang="scss" scoped>
@@ -62,5 +104,9 @@ onMounted(async () => {
 
 .card {
 	@apply bg-white rounded-xl p-4;
+}
+
+.op-row {
+	@apply flex flex-row gap-2;
 }
 </style>

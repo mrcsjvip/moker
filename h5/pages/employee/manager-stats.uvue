@@ -1,8 +1,10 @@
 <template>
 	<cl-page>
-		<cl-topbar title="数据概览" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
+			<view v-if="loading" class="empty-bar">
+				<cl-text :size="14" color="info">加载中...</cl-text>
+			</view>
+			<template v-else>
 			<view class="card shadow-card">
 				<cl-text :size="14" :pt="{ className: 'font-bold mb-3' }">今日核心指标</cl-text>
 				<view class="stats-grid">
@@ -44,30 +46,49 @@
 			</view>
 
 			<cl-text :size="12" color="info" :pt="{ className: 'block mt-2' }">详细报表请在商家端后台查看</cl-text>
+			</template>
 		</view>
 	</cl-page>
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
+import { request } from "@/.cool";
 
 const stats = ref({
-	revenue: "12800",
-	orders: 8,
-	avgPrice: "1600"
+	revenue: "0",
+	orders: 0,
+	avgPrice: "0"
 });
 
-const rankList = ref([
-	{ id: 1, name: "李四", count: 3 },
-	{ id: 2, name: "王五", count: 2 },
-	{ id: 3, name: "赵六", count: 1 }
-]);
+const rankList = ref<Array<{ id: number; name: string; count: number }>>([]);
+const topService = ref<Array<{ name: string; count: number }>>([]);
+const loading = ref(false);
 
-const topService = ref([
-	{ name: "隐形车衣", count: 4 },
-	{ name: "玻璃防爆膜", count: 2 },
-	{ name: "改色膜", count: 2 }
-]);
+async function loadData() {
+	loading.value = true;
+	try {
+		const res = await request({ url: "/app/appointment/employee/managerStats", method: "GET" });
+		const d = res?.data;
+		if (d != null) {
+			stats.value = {
+				revenue: String(d.revenue ?? "0"),
+				orders: Number(d.orders ?? 0),
+				avgPrice: String(d.avgPrice ?? "0")
+			};
+			rankList.value = Array.isArray(d.rankList) ? d.rankList : [];
+			topService.value = Array.isArray(d.topServices) ? d.topServices : [];
+		}
+	} catch {
+		rankList.value = [];
+		topService.value = [];
+	}
+	loading.value = false;
+}
+
+onMounted(() => {
+	loadData();
+});
 </script>
 
 <style lang="scss" scoped>
@@ -95,5 +116,9 @@ const topService = ref([
 .rank-item,
 .top-item {
 	@apply py-2 border-b border-solid border-surface-200;
+}
+
+.empty-bar {
+	@apply py-4;
 }
 </style>

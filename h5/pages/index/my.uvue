@@ -133,7 +133,10 @@ function toEdit() {
 }
 
 function toVehicle() {
-	router.to("/pages/biz/vehicle-list");
+	// 跳转至「我的车辆」页面（子包 pages/biz/vehicle-list）
+	uni.navigateTo({
+		url: "/pages/biz/vehicle-list"
+	});
 }
 
 function toCoupon() {

@@ -177,9 +177,9 @@ export class WorkOrderEmployeeListService {
     if (wo.customerId != null) {
       const c = await this.customerRepo.findOne({ where: { id: Equal(wo.customerId) } });
       if (c != null) {
-      const n = String(c.name ?? '');
-      customerName = n.length > 0 ? n.substring(0, 1) + '**' : '—';
-    }
+        const n = String(c.name ?? '');
+        customerName = n.length > 0 ? n.substring(0, 1) + '**' : '—';
+      }
     }
 
     const steps = stepList.map(s => ({ name: s.name, status: s.status }));

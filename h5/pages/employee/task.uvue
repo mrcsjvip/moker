@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="工单执行" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
 			<view v-if="loading" class="empty">
 				<cl-text :size="14" color="info">加载中...</cl-text>
@@ -131,21 +129,6 @@ function markException() {
 
 function toMaterialScan() {
 	router.to("/pages/employee/material-scan");
-}
-
-function loadDetail() {
-	if (workOrderId.value <= 0) return;
-	request({ url: "/app/workorder/employee/detail?id=" + workOrderId.value, method: "GET" })
-		.then((res) => {
-			const d = res?.data;
-			if (d != null) {
-				order.value = d.order ?? { plate: "", serviceName: "", customer: "" };
-				stepsList.value = Array.isArray(d.steps) ? d.steps : [];
-				progressValue.value = d.progressValue ?? 0;
-				isLastStep.value = d.isLastStep === true;
-			}
-		})
-		.catch(() => {});
 }
 
 function submitQuality() {

@@ -33,13 +33,11 @@ import { computed } from "vue";
 
 const ui = useUi();
 
-type Item = {
-	label: string;
-	path?: string;
-	children?: Item[];
-};
+// 避免递归类型导致小程序端 UTSType.withGenerics 报错
+type ChildItem = { label: string; path?: string };
+type ListGroup = { label: string; children: ChildItem[] };
 
-const list = computed<Item[]>(() => [
+const list = computed(() => [
 	{
 		label: t("社交"),
 		children: [
@@ -106,9 +104,9 @@ const list = computed<Item[]>(() => [
 			}
 		]
 	}
-]);
+] as ListGroup[]);
 
-function toPath(item: Item) {
+function toPath(item: ChildItem) {
 	if (item.path == null) {
 		return ui.showToast({
 			message: t("该模板正在开发中")

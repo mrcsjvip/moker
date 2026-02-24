@@ -11,6 +11,7 @@ import { ServiceEntity } from '../../service/entity/service';
 import { CustomerEntity } from '../../customer/entity/customer';
 import { UserInfoEntity } from '../../user/entity/info';
 import { StoreEntity } from '../../store/entity/store';
+import { UserAccountBindService } from '../../user/service/account_bind';
 
 export type TodayTaskItem = {
   id: number;
@@ -66,6 +67,9 @@ export class AppointmentEmployeeTaskService {
 
   @InjectEntityModel(StoreEntity)
   storeRepo: Repository<StoreEntity>;
+
+  @Inject()
+  userAccountBindService: UserAccountBindService;
 
   private getTenantId(): number | null {
     const tid = this.ctx.user?.tenantId;
@@ -521,5 +525,120 @@ export class AppointmentEmployeeTaskService {
       select: ['id', 'nickName'],
     });
     return users.map(u => ({ id: u.id, name: u.nickName ?? '—' }));
+  }
+
+  /**
+   * 店长端员工列表（同门店，含今日接单数、角色）
+   */
+  async getStaffList(): Promise<
+    Array<{ id: number; name: string; avatar: string; role: string; todayCount: number }>
+  > {
+    const tenantId = this.getTenantId();
+    if (tenantId == null) return [];
+
+    const { start, end } = this.getTodayRange();
+    const workOrders = await this.workOrderRepo.find({
+      where: { tenantId: Equal(tenantId) },
+    });
+    const todayWo = workOrders.filter(wo => {
+      const t = String((wo as any).createTime ?? '');
+      return t >= start && t <= end;
+    });
+    const countByTech = new Map<number, number>();
+    todayWo.forEach(wo => {
+      if (wo.technicianId != null) {
+        countByTech.set(wo.technicianId, (countByTech.get(wo.technicianId) ?? 0) + 1);
+      }
+    });
+
+    const users = await this.userInfoRepo.find({
+      where: { tenantId: Equal(tenantId), status: Equal(1) },
+      select: ['id', 'nickName', 'avatarUrl'],
+    });
+
+    const list: Array<{ id: number; name: string; avatar: string; role: string; todayCount: number }> = [];
+    for (const u of users) {
+      const access = await this.userAccountBindService.getRoleAccessByAppUserId(u.id);
+      const role = access.isManager ? '店长' : '员工';
+      list.push({
+        id: u.id,
+        name: u.nickName ?? '—',
+        avatar: u.avatarUrl ?? '',
+        role,
+        todayCount: countByTech.get(u.id) ?? 0,
+      });
+    }
+    list.sort((a, b) => b.todayCount - a.todayCount);
+    return list;
+  }
+
+  /**
+   * 店长端数据概览（当日营业额、单量、客单价、员工排行、热门服务）
+   */
+  async getManagerStats(): Promise<{
+    revenue: string;
+    orders: number;
+    avgPrice: string;
+    rankList: Array<{ id: number; name: string; count: number }>;
+    topServices: Array<{ name: string; count: number }>;
+  }> {
+    const tenantId = this.getTenantId();
+    if (tenantId == null) {
+      return {
+        revenue: '0',
+        orders: 0,
+        avgPrice: '0',
+        rankList: [],
+        topServices: [],
+      };
+    }
+
+    const { start, end } = this.getTodayRange();
+    const workOrders = await this.workOrderRepo.find({
+      where: { tenantId: Equal(tenantId), status: Equal(2) },
+    });
+    const todayDone = workOrders.filter(wo => {
+      const t = String((wo as any).createTime ?? '');
+      return t >= start && t <= end;
+    });
+
+    const orders = todayDone.length;
+    const revenue = '0'; // 工单暂无金额字段，预留
+    const avgPrice = orders > 0 ? '0' : '0';
+
+    const techCount = new Map<number, number>();
+    const serviceCount = new Map<number, number>();
+    todayDone.forEach(wo => {
+      if (wo.technicianId != null) {
+        techCount.set(wo.technicianId, (techCount.get(wo.technicianId) ?? 0) + 1);
+      }
+      if (wo.serviceId != null) {
+        serviceCount.set(wo.serviceId, (serviceCount.get(wo.serviceId) ?? 0) + 1);
+      }
+    });
+
+    const techIds = [...techCount.keys()];
+    const serviceIds = [...serviceCount.keys()];
+    const [users, services] = await Promise.all([
+      techIds.length > 0 ? this.userInfoRepo.find({ where: { id: In(techIds) }, select: ['id', 'nickName'] }) : [],
+      serviceIds.length > 0 ? this.serviceRepo.find({ where: { id: In(serviceIds) }, select: ['id', 'name'] }) : [],
+    ]);
+    const userMap = new Map(users.map(u => [u.id, u.nickName ?? '—']));
+    const serviceMap = new Map(services.map(s => [s.id, s.name]));
+
+    const rankList = techIds
+      .map(id => ({ id, name: userMap.get(id) ?? '—', count: techCount.get(id) ?? 0 }))
+      .sort((a, b) => b.count - a.count);
+    const topServices = serviceIds
+      .map(id => ({ name: serviceMap.get(id) ?? '—', count: serviceCount.get(id) ?? 0 }))
+      .sort((a, b) => b.count - a.count);
+
+    return {
+      revenue,
+      orders,
+      avgPrice,
+      rankList,
+      topServices,
+    };
   }
 }

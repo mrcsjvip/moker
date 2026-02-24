@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="物料扫码" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
 			<cl-text :size="16" :pt="{ className: 'font-bold mb-3' }">登记本次使用膜材</cl-text>
 

@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="预约填写" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
 			<!-- 选择门店 -->
 			<view class="card shadow-card">

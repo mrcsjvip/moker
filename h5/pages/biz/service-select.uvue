@@ -1,7 +1,5 @@
 <template>
 	<cl-page>
-		<cl-topbar title="选择服务" :show-back="true" safe-area-top></cl-topbar>
-
 		<view class="p-3">
 			<!-- 分类列表：全车贴膜、局部贴膜、隐形车衣、改色膜、窗膜 -->
 			<cl-list border>

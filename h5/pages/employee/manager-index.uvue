@@ -176,15 +176,59 @@ function toStoreSet() {
 }
 
 function viewAppointment(item: ManagerTodayItem) {
-	ui.showToast({ message: "查看预约" });
+	router.to("/pages/employee/sign?id=" + item.id);
 }
 
 function assignTech(item: ManagerTodayItem) {
-	ui.showToast({ message: "改派技师" });
+	request({ url: "/app/appointment/employee/technicianList", method: "GET" })
+		.then((res) => {
+			const techs = Array.isArray(res?.data) ? res.data : [];
+			if (techs.length === 0) {
+				ui.showToast({ message: "暂无可选技师" });
+				return;
+			}
+			uni.showActionSheet({
+				itemList: (techs as Array<{ name: string }>).map((t) => t.name),
+				success: (actionRes) => {
+					const tech = techs[actionRes.tapIndex] as { id: number; name: string };
+					request({
+						url: "/app/appointment/employee/managerReassign",
+						method: "POST",
+						data: { appointmentId: item.id, technicianId: tech.id }
+					})
+						.then(() => {
+							ui.showToast({ message: "已改派" });
+							loadData();
+						})
+						.catch((e: any) => {
+							ui.showToast({ message: e?.message ?? "改派失败" });
+						});
+				}
+			});
+		})
+		.catch(() => ui.showToast({ message: "获取技师列表失败" }));
 }
 
-function cancelApp(item: ManagerTodayItem) {
-	ui.showToast({ message: "取消预约" });
+async function cancelApp(item: ManagerTodayItem) {
+	const confirmed = await new Promise<boolean>((resolve) => {
+		uni.showModal({
+			title: "取消预约",
+			content: "确定要取消该预约吗？",
+			success: (res) => resolve(res.confirm)
+		});
+	});
+	if (!confirmed) return;
+	try {
+		await request({
+			url: "/app/appointment/employee/managerCancel",
+			method: "POST",
+			data: { appointmentId: item.id }
+		});
+		ui.showToast({ message: "已取消预约" });
+		loadData();
+	} catch (e: any) {
+		ui.showToast({ message: e?.message ?? "取消失败" });
+	}
 }
 </script>
 

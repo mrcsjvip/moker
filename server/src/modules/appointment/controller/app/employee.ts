@@ -73,4 +73,14 @@ export class AppAppointmentEmployeeController extends BaseController {
   async technicianList() {
     return this.ok(await this.employeeTaskService.getTechnicianList());
   }
+
+  @Get('/staffList', { summary: '店长端员工列表（含今日接单数）' })
+  async staffList() {
+    return this.ok(await this.employeeTaskService.getStaffList());
+  }
+
+  @Get('/managerStats', { summary: '店长端数据概览' })
+  async managerStats() {
+    return this.ok(await this.employeeTaskService.getManagerStats());
+  }
 }
