@@ -5,10 +5,7 @@ import { MarketingUserCouponService } from '../../service/user_coupon';
 /**
  * C端-我的优惠券：列表、领取
  */
-@CoolController('/app/marketing/userCoupon', {
-  api: [],
-  entity: null,
-})
+@CoolController({ prefix: '/app/marketing/userCoupon', api: [] })
 export class AppMarketingUserCouponController extends BaseController {
   @Inject()
   userCouponService: MarketingUserCouponService;

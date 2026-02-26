@@ -5,10 +5,7 @@ import { MarketingUserCouponService } from '../../service/user_coupon';
 /**
  * 员工/店长端-优惠券核销
  */
-@CoolController('/app/marketing/couponVerify', {
-  api: [],
-  entity: null,
-})
+@CoolController({ prefix: '/app/marketing/couponVerify', api: [] })
 export class AppMarketingCouponVerifyController extends BaseController {
   @Inject()
   userCouponService: MarketingUserCouponService;

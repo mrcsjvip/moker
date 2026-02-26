@@ -245,7 +245,4 @@ export class WorkOrderEmployeeListService {
     );
     return { ok: true };
   }
-</think>
-改为在 workorder 的 employee 中注入 Customer 并实现 detail。
-<｜tool▁calls▁begin｜><｜tool▁call▁begin｜>
-Read
+}

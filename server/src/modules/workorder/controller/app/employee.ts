@@ -5,10 +5,7 @@ import { WorkOrderEmployeeListService } from '../../service/employee_list';
 /**
  * 员工端-工单列表与详情
  */
-@CoolController('/app/workorder/employee', {
-  api: [],
-  entity: null,
-})
+@CoolController({ prefix: '/app/workorder/employee', api: [] })
 export class AppWorkOrderEmployeeController extends BaseController {
   @Inject()
   employeeListService: WorkOrderEmployeeListService;

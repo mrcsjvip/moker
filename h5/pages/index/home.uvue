@@ -64,7 +64,7 @@
 	</cl-page>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { request, useStore } from "@/.cool";
 import { router } from "@/.cool";

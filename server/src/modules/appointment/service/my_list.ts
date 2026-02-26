@@ -69,8 +69,12 @@ export class AppointmentMyListService {
       storeIds.length > 0 ? this.storeRepo.find({ where: { id: In(storeIds) } }) : [],
       serviceIds.length > 0 ? this.serviceRepo.find({ where: { id: In(serviceIds) } }) : [],
     ]);
-    const storeMap = new Map(stores.map(s => [s.id, s]));
-    const serviceMap = new Map(services.map(s => [s.id, s]));
+    const storeMap = new Map<number, StoreEntity>(
+      stores.map(s => [s.id, s] as [number, StoreEntity])
+    );
+    const serviceMap = new Map<number, ServiceEntity>(
+      services.map(s => [s.id, s] as [number, ServiceEntity])
+    );
 
     const statusMap: Record<number, { text: string; type: string }> = {
       0: { text: '待确认', type: 'warning' },

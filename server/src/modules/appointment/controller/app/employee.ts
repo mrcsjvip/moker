@@ -5,10 +5,7 @@ import { AppointmentEmployeeTaskService } from '../../service/employee_task';
 /**
  * 员工端-今日任务、签到、统计
  */
-@CoolController('/app/appointment/employee', {
-  api: [],
-  entity: null,
-})
+@CoolController({ prefix: '/app/appointment/employee', api: [] })
 export class AppAppointmentEmployeeController extends BaseController {
   @Inject()
   employeeTaskService: AppointmentEmployeeTaskService;

@@ -1,5 +1,6 @@
 import { BaseService, CoolCommException } from '@cool-midway/core';
 import { Inject, Provide } from '@midwayjs/core';
+import { Context } from '@midwayjs/koa';
 import { InjectEntityModel } from '@midwayjs/typeorm';
 import * as md5 from 'md5';
 import { Equal, Repository } from 'typeorm';
@@ -34,6 +35,9 @@ export class UserInfoService extends BaseService {
 
   @InjectEntityModel(BaseSysTenantEntity)
   baseSysTenantEntity: Repository<BaseSysTenantEntity>;
+
+  @Inject()
+  ctx: Context;
 
   /**
    * 绑定小程序手机号

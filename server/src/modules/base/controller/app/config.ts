@@ -12,7 +12,7 @@ import {
  * 业务配置（按租户隔离，app 端获取）
  */
 @Provide()
-@CoolController('/app/base/config', { api: [], entity: null })
+@CoolController({ prefix: '/app/base/config', api: [] })
 export class BaseAppConfigController extends BaseController {
   @Inject()
   ctx: Context;

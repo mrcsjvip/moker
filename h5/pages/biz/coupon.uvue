@@ -62,7 +62,8 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
-import { request, t, useUi } from "@/.cool";
+import { request, t } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
 
 const ui = useUi();
 const tab = ref(0);

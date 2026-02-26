@@ -1,7 +1,7 @@
 import { Body, Get, Inject, Post } from '@midwayjs/core';
 import { CoolController, BaseController } from '@cool-midway/core';
 import { Context } from '@midwayjs/koa';
-import { BaseSysConfService, type AppBannerItem } from '../../../../service/sys/conf';
+import { BaseSysConfService, type AppBannerItem } from '../../../service/sys/conf';
 
 /**
  * 小程序轮播图配置（按当前登录管理员租户）

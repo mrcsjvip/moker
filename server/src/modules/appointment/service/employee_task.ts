@@ -305,9 +305,15 @@ export class AppointmentEmployeeTaskService {
       serviceIds.length > 0 ? this.serviceRepo.find({ where: { id: In(serviceIds) } }) : [],
       techIds.length > 0 ? this.userInfoRepo.find({ where: { id: In(techIds) } }) : [],
     ]);
-    const vehicleMap = new Map(vehicles.map(v => [v.id, v]));
-    const serviceMap = new Map(services.map(s => [s.id, s]));
-    const techMap = new Map(users.map(u => [u.id, u.nickName ?? '—']));
+    const vehicleMap = new Map<number, VehicleEntity>(
+      vehicles.map(v => [v.id, v] as [number, VehicleEntity])
+    );
+    const serviceMap = new Map<number, ServiceEntity>(
+      services.map(s => [s.id, s] as [number, ServiceEntity])
+    );
+    const techMap = new Map<number, string>(
+      users.map(u => [u.id, u.nickName ?? '—'] as [number, string])
+    );
 
     const statusTextMap: Record<string, string> = {
       pending: '待到店',
@@ -623,8 +629,12 @@ export class AppointmentEmployeeTaskService {
       techIds.length > 0 ? this.userInfoRepo.find({ where: { id: In(techIds) }, select: ['id', 'nickName'] }) : [],
       serviceIds.length > 0 ? this.serviceRepo.find({ where: { id: In(serviceIds) }, select: ['id', 'name'] }) : [],
     ]);
-    const userMap = new Map(users.map(u => [u.id, u.nickName ?? '—']));
-    const serviceMap = new Map(services.map(s => [s.id, s.name]));
+    const userMap = new Map<number, string>(
+      users.map(u => [u.id, u.nickName ?? '—'] as [number, string])
+    );
+    const serviceMap = new Map<number, string>(
+      services.map(s => [s.id, s.name] as [number, string])
+    );
 
     const rankList = techIds
       .map(id => ({ id, name: userMap.get(id) ?? '—', count: techCount.get(id) ?? 0 }))

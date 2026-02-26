@@ -1,13 +1,13 @@
 <template>
 	<cl-page>
 		<view class="p-3">
-			<view class="order-card shadow-card" v-for="item in list" :key="item.no">
+			<view class="order-card shadow-card" v-for="item in list" :key="item.id">
 				<view class="flex flex-row items-center">
-					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.service }}</cl-text>
-					<cl-tag class="ml-auto" :type="item.statusType" size="mini">{{ item.status }}</cl-tag>
+					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.serviceName }}</cl-text>
+					<cl-tag class="ml-auto" :type="item.statusType" size="mini">{{ item.statusText }}</cl-tag>
 				</view>
 				<cl-text :size="12" color="info" :pt="{ className: 'mt-2' }">
-					工单号 {{ item.no }} · {{ item.time }}
+					工单号 {{ item.id }} · {{ item.time }}
 				</cl-text>
 				<view class="progress">
 					<view class="step" v-for="step in item.steps" :key="step">
@@ -21,24 +21,35 @@
 </template>
 
 <script lang="ts" setup>
-const list = [
-	{
-		no: "WO-20240208-001",
-		service: "隐形车衣",
-		status: "施工中",
-		statusType: "warning",
-		time: "今日 14:00",
-		steps: ["进店检车", "施工中", "质检中"]
-	},
-	{
-		no: "WO-20240207-008",
-		service: "玻璃防爆膜",
-		status: "已完成",
-		statusType: "success",
-		time: "昨日 10:30",
-		steps: ["进店检车", "施工完成", "交付"]
-	}
-];
+import { onMounted, ref } from "vue";
+import { request } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+type WorkOrderItem = {
+	id: number;
+	serviceName: string;
+	statusText: string;
+	statusType: string;
+	time: string;
+	steps: string[];
+};
+
+const ui = useUi();
+const list = ref<WorkOrderItem[]>([]);
+
+function load() {
+	request({ url: "/app/workorder/my/list", method: "GET" })
+		.then((data) => {
+			list.value = Array.isArray(data) ? data : [];
+		})
+		.catch((err) => {
+			ui.showToast({
+				message: err?.message || "加载失败"
+			});
+		});
+}
+
+onMounted(load);
 </script>
 
 <style lang="scss" scoped>

@@ -5,23 +5,20 @@ import { AppointmentMyListService } from '../../service/my_list';
 /**
  * C端-我的预约
  */
-@CoolController('/app/appointment/my', {
-  api: [],
-  entity: null,
-})
+@CoolController({ prefix: '/app/appointment/my', api: [] })
 export class AppAppointmentMyController extends BaseController {
   @Inject()
   myListService: AppointmentMyListService;
 
   @Get('/list', { summary: '我的预约列表' })
-  async list(@Query('tab') tab: string) {
+  async listMine(@Query('tab') tab: string) {
     return this.ok(
       await this.myListService.list(tab == null || tab === '' ? 'all' : String(tab))
     );
   }
 
   @Get('/info', { summary: '预约详情' })
-  async info(@Query('id') id: string) {
+  async infoDetail(@Query('id') id: string) {
     const detail = await this.myListService.getDetail(Number(id) || 0);
     if (detail == null) return this.fail('预约不存在或无权查看');
     return this.ok(detail);

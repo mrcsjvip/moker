@@ -50,7 +50,7 @@ export class BaseSysLogController extends BaseController {
    */
   @Post('/setKeep', { summary: '日志保存时间' })
   public async setKeep(@Body('value') value: number) {
-    await this.baseSysConfService.updateVaule('logKeep', value);
+    await this.baseSysConfService.updateVaule('logKeep', String(value));
     return this.ok();
   }
 
