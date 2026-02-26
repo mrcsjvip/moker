@@ -1,31 +1,151 @@
 <template>
 	<cl-page>
 		<view class="p-3">
-			<view class="coupon-card shadow-card" v-for="item in coupons" :key="item.name">
-				<view class="flex flex-row items-center">
-					<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
-					<cl-tag class="ml-auto" type="primary" size="mini">{{ item.type }}</cl-tag>
+			<cl-tabs v-model="tab" :list="tabList" @change="onTabChange" />
+
+			<!-- 可领取 -->
+			<view v-if="tab === 0" class="mt-3">
+				<view v-if="availableLoading" class="empty">
+					<cl-text :size="14" color="info">{{ t("加载中...") }}</cl-text>
 				</view>
-				<cl-text :size="24" :pt="{ className: 'font-bold text-primary-500 mt-2' }">
-					{{ item.value }}
-				</cl-text>
-				<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">
-					满{{ item.minSpend }}可用 · {{ item.valid }}
-				</cl-text>
+				<view v-else-if="availableList.length === 0" class="empty">
+					<cl-icon name="coupon-line" :size="48" color="info"></cl-icon>
+					<cl-text :size="14" color="info" :pt="{ className: 'mt-2' }">暂无可领取的优惠券</cl-text>
+				</view>
+				<view v-else class="coupon-list">
+					<view class="coupon-card shadow-card" v-for="item in availableList" :key="item.id">
+						<view class="flex flex-row items-center">
+							<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.name }}</cl-text>
+							<cl-tag class="ml-auto" type="primary" size="mini">{{ item.type === 1 ? "折扣" : "满减" }}</cl-tag>
+						</view>
+						<cl-text :size="24" :pt="{ className: 'font-bold text-primary-500 mt-2' }">
+							{{ item.type === 1 ? item.value + "折" : "¥" + item.value }}
+						</cl-text>
+						<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">
+							满{{ item.minSpend }}可用 · {{ item.startTime || "—" }} 至 {{ item.endTime || "—" }}
+						</cl-text>
+						<cl-button type="primary" size="mini" class="mt-3" :loading="receiveLoading === item.id" @tap="receive(item.id)">领取</cl-button>
+					</view>
+				</view>
+			</view>
+
+			<!-- 我的优惠券 -->
+			<view v-if="tab === 1" class="mt-3">
+				<view v-if="myLoading" class="empty">
+					<cl-text :size="14" color="info">{{ t("加载中...") }}</cl-text>
+				</view>
+				<view v-else-if="myList.length === 0" class="empty">
+					<cl-icon name="coupon-line" :size="48" color="info"></cl-icon>
+					<cl-text :size="14" color="info" :pt="{ className: 'mt-2' }">暂无优惠券</cl-text>
+				</view>
+				<view v-else class="coupon-list">
+					<view class="coupon-card shadow-card" v-for="item in myList" :key="item.id">
+						<view class="flex flex-row items-center">
+							<cl-text :size="14" :pt="{ className: 'font-bold' }">{{ item.couponName }}</cl-text>
+							<cl-tag class="ml-auto" :type="item.status === 0 ? 'success' : item.status === 1 ? 'info' : 'default'" size="mini">
+								{{ item.status === 0 ? "未使用" : item.status === 1 ? "已使用" : "已过期" }}
+							</cl-tag>
+						</view>
+						<cl-text :size="24" :pt="{ className: 'font-bold text-primary-500 mt-2' }">
+							{{ item.couponType === 1 ? item.value + "折" : "¥" + item.value }}
+						</cl-text>
+						<cl-text :size="12" color="info" :pt="{ className: 'mt-1' }">
+							满{{ item.minSpend }}可用 · 核销码：{{ item.code }}
+						</cl-text>
+						<cl-text v-if="item.usedTime" :size="12" color="info">使用时间 {{ item.usedTime }}</cl-text>
+					</view>
+				</view>
 			</view>
 		</view>
 	</cl-page>
 </template>
 
 <script lang="ts" setup>
-const coupons = [
-	{ name: "贴膜立减券", type: "满减", value: "¥200", minSpend: 1200, valid: "2026.02.01-2026.03.01" },
-	{ name: "玻璃膜折扣券", type: "折扣", value: "9折", minSpend: 800, valid: "2026.02.01-2026.03.01" }
+import { ref, onMounted } from "vue";
+import { request, t, useUi } from "@/.cool";
+
+const ui = useUi();
+const tab = ref(0);
+const tabList = [
+	{ label: "可领取", value: 0 },
+	{ label: "我的", value: 1 }
 ];
+
+const availableList = ref<Array<{ id: number; name: string; type: number; value: number; minSpend: number; startTime: string | null; endTime: string | null }>>([]);
+const availableLoading = ref(false);
+const myList = ref<Array<{
+	id: number;
+	code: string;
+	status: number;
+	receiveTime: string;
+	usedTime: string | null;
+	couponName: string;
+	couponType: number;
+	value: number;
+	minSpend: number;
+}>>([]);
+const myLoading = ref(false);
+const receiveLoading = ref<number | null>(null);
+
+async function loadAvailable() {
+	availableLoading.value = true;
+	try {
+		const res = await request({ url: "/app/marketing/userCoupon/available", method: "GET" });
+		availableList.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		availableList.value = [];
+	}
+	availableLoading.value = false;
+}
+
+async function loadMy() {
+	myLoading.value = true;
+	try {
+		const res = await request({ url: "/app/marketing/userCoupon/list", method: "GET" });
+		myList.value = Array.isArray(res?.data) ? res.data : [];
+	} catch {
+		myList.value = [];
+	}
+	myLoading.value = false;
+}
+
+function onTabChange() {
+	if (tab.value === 0) loadAvailable();
+	else loadMy();
+}
+
+async function receive(couponId: number) {
+	receiveLoading.value = couponId;
+	try {
+		await request({
+			url: "/app/marketing/userCoupon/receive",
+			method: "POST",
+			data: { couponId }
+		});
+		ui.showToast({ message: t("领取成功") });
+		loadAvailable();
+		loadMy();
+	} catch (e: any) {
+		ui.showToast({ message: e?.message || t("领取失败") });
+	}
+	receiveLoading.value = null;
+}
+
+onMounted(() => {
+	onTabChange();
+});
 </script>
 
 <style lang="scss" scoped>
+.empty {
+	@apply flex flex-col items-center justify-center py-16;
+}
+
+.coupon-list {
+	@apply flex flex-col gap-3;
+}
+
 .coupon-card {
-	@apply bg-white rounded-2xl p-4 mb-3;
+	@apply bg-white rounded-2xl p-4;
 }
 </style>

@@ -1,0 +1,86 @@
+<template>
+	<cl-page>
+		<cl-topbar title="优惠券核销" :show-back="true" />
+		<view class="p-3">
+			<view class="card shadow-card">
+				<cl-text :size="14" color="info" :pt="{ className: 'mb-2' }">请输入客户出示的券码（12位），核销后该券即被使用</cl-text>
+				<cl-input
+					v-model="code"
+					:placeholder="t('请输入核销码')"
+					:maxlength="12"
+					:pt="{ className: 'mb-3' }"
+				/>
+				<cl-button type="primary" round class="w-full" :loading="loading" @tap="verify">核销</cl-button>
+			</view>
+
+			<view v-if="result != null" class="result-card mt-4" :class="result.success ? 'success' : 'fail'">
+				<cl-icon :name="result.success ? 'checkbox-circle-fill' : 'close-circle-fill'" :size="40" :pt="{ className: 'mb-2' }"></cl-icon>
+				<cl-text :size="16" :pt="{ className: 'font-bold' }">{{ result.message }}</cl-text>
+				<cl-text v-if="result.couponName" :size="14" color="info" :pt="{ className: 'mt-1' }">{{ result.couponName }}</cl-text>
+			</view>
+		</view>
+	</cl-page>
+</template>
+
+<script lang="ts" setup>
+import { ref, computed } from "vue";
+import { request, t, useStore } from "@/.cool";
+import { useUi } from "@/uni_modules/cool-ui";
+
+const ui = useUi();
+const { user: userStore } = useStore();
+const code = ref("");
+const loading = ref(false);
+const result = ref<{ success: boolean; message: string; couponName?: string } | null>(null);
+
+const storeId = computed(() => {
+	const info = userStore.info.value;
+	if (info?.tenantId != null && info.tenantId > 0) return info.tenantId;
+	return undefined;
+});
+
+async function verify() {
+	const codeTrim = code.value.trim().toUpperCase();
+	if (codeTrim.length === 0) {
+		ui.showToast({ message: t("请输入核销码") });
+		return;
+	}
+	loading.value = true;
+	result.value = null;
+	try {
+		const res = await request({
+			url: "/app/marketing/couponVerify/verify",
+			method: "POST",
+			data: { code: codeTrim, storeId: storeId.value }
+		});
+		const data = res?.data;
+		result.value = {
+			success: data?.success === true,
+			message: data?.message ?? (data?.success ? "核销成功" : "核销失败"),
+			couponName: data?.couponName
+		};
+		if (data?.success) code.value = "";
+	} catch (e: any) {
+		result.value = { success: false, message: e?.message ?? t("请求失败") };
+	}
+	loading.value = false;
+}
+</script>
+
+<style lang="scss" scoped>
+.card {
+	@apply bg-white rounded-xl p-4;
+}
+
+.result-card {
+	@apply flex flex-col items-center justify-center py-6 rounded-xl;
+
+	&.success {
+		@apply bg-green-50;
+	}
+
+	&.fail {
+		@apply bg-red-50;
+	}
+}
+</style>

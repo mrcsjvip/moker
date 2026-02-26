@@ -20,6 +20,7 @@
 			</view>
 
 			<cl-list :pt="{ className: 'mb-3' }">
+				<cl-list-item label="优惠券核销" icon="coupon-line" arrow hoverable @tap="toCouponVerify"></cl-list-item>
 				<cl-list-item label="提成明细" icon="money-cny-circle-line" arrow hoverable @tap="toCommission"></cl-list-item>
 				<cl-list-item label="标准施工视频" icon="video-line" arrow hoverable @tap="toKnowledge"></cl-list-item>
 				<cl-list-item label="新品膜材速查" icon="book-open-line" arrow hoverable @tap="toKnowledge"></cl-list-item>
@@ -94,6 +95,10 @@ function toManager() {
 
 function toKnowledge() {
 	router.to("/pages/employee/knowledge");
+}
+
+function toCouponVerify() {
+	router.to("/pages/employee/coupon-verify");
 }
 
 function toNotice() {

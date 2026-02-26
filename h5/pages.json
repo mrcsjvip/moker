@@ -181,6 +181,12 @@
 					"style": {
 						"navigationBarTitleText": "数据概览"
 					}
+				},
+				{
+					"path": "coupon-verify",
+					"style": {
+						"navigationBarTitleText": "优惠券核销"
+					}
 				}
 			]
 		},

@@ -17,6 +17,12 @@ export class CouponUseEntity extends BaseEntity {
   @Column({ comment: '工单ID', nullable: true })
   workOrderId: number;
 
+  @Column({ comment: '核销门店ID', nullable: true })
+  storeId: number;
+
+  @Column({ comment: '核销人（员工/店长）ID', nullable: true })
+  operatorId: number;
+
   @Column({
     comment: '使用时间',
     type: 'varchar',

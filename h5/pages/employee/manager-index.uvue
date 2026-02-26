@@ -47,6 +47,10 @@
 					<cl-icon name="bar-chart-box-line" :size="24"></cl-icon>
 					<cl-text :size="12" :pt="{ className: 'mt-2' }">数据概览</cl-text>
 				</view>
+				<view class="entry" @tap="toCouponVerify">
+					<cl-icon name="coupon-line" :size="24"></cl-icon>
+					<cl-text :size="12" :pt="{ className: 'mt-2' }">优惠券核销</cl-text>
+				</view>
 				<view class="entry" @tap="toMarketing">
 					<cl-icon name="gift-line" :size="24"></cl-icon>
 					<cl-text :size="12" :pt="{ className: 'mt-2' }">营销发放</cl-text>
@@ -165,6 +169,10 @@ function toStaff() {
 
 function toStats() {
 	router.to("/pages/employee/manager-stats");
+}
+
+function toCouponVerify() {
+	router.to("/pages/employee/coupon-verify");
 }
 
 function toMarketing() {

@@ -33,9 +33,11 @@ const { service } = useCool();
 const Table = useTable({
 	columns: [
 		{ type: 'selection', width: 60 },
-		{ label: '优惠券ID', prop: 'couponId', minWidth: 120 },
-		{ label: '客户ID', prop: 'customerId', minWidth: 120 },
-		{ label: '工单ID', prop: 'workOrderId', minWidth: 120 },
+		{ label: '优惠券ID', prop: 'couponId', minWidth: 100 },
+		{ label: '客户ID', prop: 'customerId', minWidth: 100 },
+		{ label: '工单ID', prop: 'workOrderId', minWidth: 100 },
+		{ label: '核销门店ID', prop: 'storeId', minWidth: 110 },
+		{ label: '核销人ID', prop: 'operatorId', minWidth: 100 },
 		{ label: '使用时间', prop: 'usedTime', minWidth: 170 },
 		{ type: 'op' }
 	]
