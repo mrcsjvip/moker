@@ -1,15 +1,18 @@
 <template>
 	<cl-page>
 		<view class="p-3">
-			<!-- 分类列表：全车贴膜、局部贴膜、隐形车衣、改色膜、窗膜 -->
+			<!-- 分类列表：来自后端可配置（服务分类管理） -->
 			<cl-list border>
 				<cl-list-item
 					v-for="item in categories"
-					:key="item.value"
-					:label="item.label"
+					:key="item.id"
+					:label="item.name"
 					icon="car-line"
 					arrow
 					hoverable
+					:pt="{
+						wrapper: { className: selectedCategoryId === item.id ? '!bg-primary-50' : '' }
+					}"
 					@tap="selectCategory(item)"
 				>
 				</cl-list-item>
@@ -52,21 +55,33 @@ import { useUi } from "@/uni_modules/cool-ui";
 
 const ui = useUi();
 
-const categories = ref([
-	{ label: "全车贴膜", value: "full" },
-	{ label: "局部贴膜", value: "partial" },
-	{ label: "隐形车衣", value: "ppf" },
-	{ label: "改色膜", value: "color" },
-	{ label: "窗膜", value: "window" }
-]);
+type CategoryItem = { id: number; name: string; orderNum?: number };
+const categories = ref<CategoryItem[]>([]);
+const selectedCategoryId = ref<number | null>(null);
 
 type ServiceItem = { id: number; name: string; guidePrice: number; duration: number };
 const recommends = ref<ServiceItem[]>([]);
 const selectedService = ref<ServiceItem | null>(null);
 
-onMounted(async () => {
+async function loadCategories() {
 	try {
-		const res = await request({ url: "/app/service/list", method: "GET" });
+		const res = await request({ url: "/app/service/category/list", method: "GET" });
+		const list = Array.isArray(res?.data) ? res.data : [];
+		categories.value = list
+			.map((c: any) => ({ id: c.id, name: c.name ?? "—", orderNum: c.orderNum ?? 0 }))
+			.sort((a: CategoryItem, b: CategoryItem) => (a.orderNum ?? 0) - (b.orderNum ?? 0));
+	} catch {
+		categories.value = [];
+	}
+}
+
+async function loadRecommends(categoryId?: number | null) {
+	try {
+		const query = categoryId != null ? "?categoryId=" + categoryId : "";
+		const res = await request({
+			url: "/app/service/list" + query,
+			method: "GET"
+		});
 		const list = Array.isArray(res?.data) ? res.data : [];
 		recommends.value = list.map((s: any) => ({
 			id: s.id,
@@ -77,10 +92,16 @@ onMounted(async () => {
 	} catch {
 		recommends.value = [];
 	}
+}
+
+onMounted(() => {
+	loadCategories();
+	loadRecommends();
 });
 
-function selectCategory(item: any) {
-	// 可展开子项或筛选推荐
+function selectCategory(item: CategoryItem) {
+	selectedCategoryId.value = item.id;
+	loadRecommends(item.id);
 }
 
 function selectService(r: ServiceItem) {

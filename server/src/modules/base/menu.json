@@ -399,6 +399,53 @@
                 ]
             },
             {
+                "name": "服务管理",
+                "router": null,
+                "perms": null,
+                "type": 0,
+                "icon": "icon-app",
+                "orderNum": 6,
+                "viewPath": null,
+                "keepAlive": true,
+                "isShow": true,
+                "childMenus": [
+                    {
+                        "name": "服务项目",
+                        "router": "/service/list",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-menu",
+                        "orderNum": 1,
+                        "viewPath": "modules/service/views/list.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": [
+                            { "name": "新增", "router": null, "perms": "service:service:add", "type": 2, "icon": null, "orderNum": 1, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "删除", "router": null, "perms": "service:service:delete", "type": 2, "icon": null, "orderNum": 2, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "修改", "router": null, "perms": "service:service:update,service:service:info", "type": 2, "icon": null, "orderNum": 3, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "查询", "router": null, "perms": "service:service:page,service:service:list,service:service:info", "type": 2, "icon": null, "orderNum": 4, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] }
+                        ]
+                    },
+                    {
+                        "name": "服务分类",
+                        "router": "/service/category-list",
+                        "perms": null,
+                        "type": 1,
+                        "icon": "icon-menu",
+                        "orderNum": 2,
+                        "viewPath": "modules/service/views/category-list.vue",
+                        "keepAlive": true,
+                        "isShow": true,
+                        "childMenus": [
+                            { "name": "新增", "router": null, "perms": "service:service_category:add", "type": 2, "icon": null, "orderNum": 1, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "删除", "router": null, "perms": "service:service_category:delete", "type": 2, "icon": null, "orderNum": 2, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "修改", "router": null, "perms": "service:service_category:update,service:service_category:info", "type": 2, "icon": null, "orderNum": 3, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] },
+                            { "name": "查询", "router": null, "perms": "service:service_category:page,service:service_category:list,service:service_category:info", "type": 2, "icon": null, "orderNum": 4, "viewPath": null, "keepAlive": false, "isShow": true, "childMenus": [] }
+                        ]
+                    }
+                ]
+            },
+            {
                 "name": "参数配置",
                 "router": null,
                 "perms": null,

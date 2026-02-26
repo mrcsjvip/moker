@@ -7,6 +7,10 @@ import { BaseEntity } from '../../base/entity/base';
 @Entity('service_item')
 export class ServiceEntity extends BaseEntity {
   @Index()
+  @Column({ comment: '服务分类ID', nullable: true })
+  categoryId: number;
+
+  @Index()
   @Column({ comment: '服务名称' })
   name: string;
 

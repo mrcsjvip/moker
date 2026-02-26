@@ -1,0 +1,9 @@
+{
+  "service_category": [
+    { "name": "全车贴膜", "orderNum": 1 },
+    { "name": "局部贴膜", "orderNum": 2 },
+    { "name": "隐形车衣", "orderNum": 3 },
+    { "name": "改色膜", "orderNum": 4 },
+    { "name": "窗膜", "orderNum": 5 }
+  ]
+}

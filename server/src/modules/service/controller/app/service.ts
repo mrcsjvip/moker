@@ -9,6 +9,7 @@ import { ServiceEntity } from '../../entity/service';
   entity: ServiceEntity,
   listQueryOp: {
     keyWordLikeFields: ['name'],
+    fieldEq: ['categoryId'],
   },
 })
 export class AppServiceController extends BaseController {}

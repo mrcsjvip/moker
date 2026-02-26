@@ -194,6 +194,7 @@ const props = defineProps({
 const { proxy } = getCurrentInstance()!;
 const slots = useSlots();
 const touch = useTouch();
+const emit = defineEmits<{ (e: "tap"): void }>();
 
 // 透传样式类型定义
 type PassThrough = {
@@ -389,9 +390,10 @@ function onTouchMove(e: UniTouchEvent) {
 const isCollapse = ref(false);
 
 /**
- * 点击事件处理
+ * 点击事件处理：向父组件派发 tap，并处理折叠态
  */
 function onTap() {
+	emit("tap");
 	if (props.collapse) {
 		isCollapse.value = !isCollapse.value;
 	}
