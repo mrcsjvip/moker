@@ -16,6 +16,8 @@ function toPath(dir: string) {
 // https://vitejs.dev/config
 export default ({ mode }: ConfigEnv): UserConfig => {
 	const isDev = mode === 'development';
+	// 生产环境部署在 moker.mrcsj.cc/admin 下，需设置 base
+	const base = mode === 'production' ? '/admin/' : '/';
 
 	return {
 		plugins: [
@@ -43,7 +45,7 @@ export default ({ mode }: ConfigEnv): UserConfig => {
 				include: [toPath('./src/{modules,plugins}/**/locales/**')]
 			})
 		],
-		base: '/',
+		base,
 		server: {
 			port: 9000,
 			proxy,

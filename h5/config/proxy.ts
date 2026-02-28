@@ -12,9 +12,9 @@ export const proxy = {
 		rewrite: (path: string) => path.replace("/dev", "")
 	},
 
-	// 生产环境配置
+	// 生产环境配置（与 deploy 域名一致）
 	prod: {
-		target: "https://show.cool-admin.com",
+		target: "https://moker.mrcsj.cc",
 		changeOrigin: true,
 		rewrite: (path: string) => path.replace("/prod", "/api")
 	}
