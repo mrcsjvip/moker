@@ -1,14 +1,10 @@
-FROM node:lts-alpine
-WORKDIR /build
-# 设置npm镜像
-RUN npm config set registry https://registry.npmmirror.com
-COPY package.json /build/package.json
-RUN npm install
-COPY ./ /build
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
 RUN npm run build
 
-FROM nginx
-RUN mkdir /app
-COPY --from=0 /build/dist /app
-COPY --from=0 /build/nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
+FROM alpine:3.20 AS admin
+WORKDIR /app
+COPY --from=build /app/dist ./dist
