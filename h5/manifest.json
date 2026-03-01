@@ -1,5 +1,5 @@
 {
-    "name" : "cool-unix",
+    "name" : "moker",
     "appid" : "__UNI__651711F",
     "description" : "完全开源、永久免费、上手容易、效率极高的开发脚手架",
     "versionName" : "1.0.0",
@@ -46,7 +46,7 @@
             "mode" : "",
             "base" : "/"
         },
-        "title" : "cool-unix"
+        "title" : "moker"
     },
     "app-harmony" : {
         "distribute" : {

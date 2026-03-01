@@ -82,7 +82,7 @@
 			<cl-svg name="bg"></cl-svg>
 		</div>
 
-		<a href="https://cool-js.com" class="copyright"> Copyright © COOL </a>
+		<a href="https://github.com/mrcsjvip/moker" class="copyright"> Copyright © moker </a>
 	</div>
 </template>
 

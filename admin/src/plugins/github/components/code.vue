@@ -6,6 +6,6 @@
 
 <script setup lang="ts">
 function toCode() {
-	window.open('https://github.com/cool-team-official/cool-admin-vue', '_blank');
+window.open('https://github.com/mrcsjvip/moker', '_blank');
 }
 </script>

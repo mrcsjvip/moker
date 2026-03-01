@@ -131,7 +131,7 @@ import { useUi } from "@/uni_modules/cool-ui";
 
 const ui = useUi();
 
-const content = ref("Cool Unix");
+const content = ref("moker");
 
 const isBorder = ref(true);
 const isLeftIcon = ref(true);

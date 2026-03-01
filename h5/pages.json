@@ -733,7 +733,7 @@
 		}
 	],
 	"globalStyle": {
-		"navigationBarTitleText": "cool-unix",
+		"navigationBarTitleText": "moker",
 		"navigationBarTextStyle": "@navTextStyle",
 		"backgroundColorContent": "@bgContentColor",
 		"backgroundColor": "@bgColor",

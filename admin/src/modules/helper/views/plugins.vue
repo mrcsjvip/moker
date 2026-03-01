@@ -495,8 +495,8 @@ const plugin = reactive({
 						)
 					)
 					.map(e => {
-						if (e.author == 'COOL') {
-							e.logo = 'https://cool-js.com/logo.png';
+						if (e.author == 'moker') {
+							e.logo = '/logo.png';
 						}
 
 						const isVue = e.type == 'plugins';

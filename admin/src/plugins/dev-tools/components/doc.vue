@@ -38,12 +38,12 @@ const list = ref([
 	{
 		label: 'vue',
 		icon: Cool,
-		link: 'https://vue.cool-admin.com/'
+		link: 'https://github.com/mrcsjvip/moker'
 	},
 	{
 		label: 'node',
 		icon: Cool,
-		link: 'https://node.cool-admin.com/'
+		link: 'https://github.com/mrcsjvip/moker'
 	},
 	{
 		label: 'vue',

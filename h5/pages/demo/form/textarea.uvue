@@ -57,7 +57,7 @@ import DemoItem from "../components/item.uvue";
 import { parseClass } from "@/.cool";
 import { t } from "@/.cool";
 
-const content = ref("Cool Unix");
+const content = ref("moker");
 
 const isBorder = ref(true);
 const isShowCount = ref(true);

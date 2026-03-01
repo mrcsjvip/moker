@@ -31,8 +31,8 @@ function shareText() {
 	// #ifdef APP
 	shareWithSystem({
 		type: "text",
-		title: "Cool Unix",
-		summary: "Cool Unix 是一个高效的项目脚手架",
+		title: "moker",
+		summary: "moker 是一个高效的项目脚手架",
 		success: () => {
 			console.log("success");
 		},
