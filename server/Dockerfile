@@ -10,7 +10,7 @@ FROM node:20-alpine AS server
 WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev && npm install typescript
+RUN npm ci --omit=dev
 COPY --from=build /app/dist ./dist
 COPY --from=build /app/bootstrap.js ./bootstrap.js
 COPY --from=build /app/public ./public
