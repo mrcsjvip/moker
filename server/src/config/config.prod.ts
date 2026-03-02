@@ -4,9 +4,23 @@ import { entities } from '../entities';
 import { TenantSubscriber } from '../modules/base/db/tenant';
 
 /**
- * 本地开发 npm run prod 读取的配置文件
+ * 生产环境配置（NODE_ENV=production）
  */
 export default {
+  // 生产环境日志：控制台输出到 stdout，便于 docker logs 查看；文件落盘到 /tmp 避免无 HOME 时失败
+  midwayLogger: {
+    default: {
+      level: 'info',
+      transports: {
+        file: {
+          dir: '/tmp/logs/cool-admin',
+        },
+        error: {
+          dir: '/tmp/logs/cool-admin',
+        },
+      },
+    },
+  },
   typeorm: {
     dataSource: {
       default: {

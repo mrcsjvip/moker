@@ -66,5 +66,8 @@ export class MainConfiguration {
   @Inject()
   logger: ILogger;
 
-  async onReady() {}
+  async onReady() {
+    const port = this.app.getConfig('koa.port') ?? 8001;
+    this.logger.info('[cool-admin] Server starting, listen port: %s', port);
+  }
 }

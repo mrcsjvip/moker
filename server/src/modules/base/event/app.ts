@@ -14,32 +14,28 @@ export class BaseAppEvent {
 
   @Event('onServerReady')
   async onServerReady() {
-    if (!process['pkg']) return;
     const port = this.app.getConfig('koa.port') || 8001;
-    this.logger.info(`Server is running at http://127.0.0.1:${port}`);
-    const url = `http://127.0.0.1:${port}`;
+    const url = `http://0.0.0.0:${port}`;
+    this.logger.info('Server is running at %s', url);
 
-    // 使用 child_process 打开浏览器
-    const { exec } = require('child_process');
-    let command;
-
-    switch (process.platform) {
-      case 'darwin': // macOS
-        command = `open ${url}`;
-        break;
-      case 'win32': // Windows
-        command = `start ${url}`;
-        break;
-      default: // Linux
-        command = `xdg-open ${url}`;
-        break;
-    }
-
-    console.log('url=>', url);
-    exec(command, (error: any) => {
-      if (!error) {
-        this.logger.info(`Application has opened in browser at ${url}`);
+    // 仅 pkg 打包后的本地运行时自动打开浏览器
+    if (process['pkg']) {
+      const { exec } = require('child_process');
+      let command: string;
+      switch (process.platform) {
+        case 'darwin':
+          command = `open http://127.0.0.1:${port}`;
+          break;
+        case 'win32':
+          command = `start http://127.0.0.1:${port}`;
+          break;
+        default:
+          command = `xdg-open http://127.0.0.1:${port}`;
+          break;
       }
-    });
+      exec(command, (error: unknown) => {
+        if (!error) this.logger.info('Application opened in browser');
+      });
+    }
   }
 }

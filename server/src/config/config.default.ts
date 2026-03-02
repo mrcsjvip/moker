@@ -4,13 +4,40 @@ import { CoolCacheStore } from '@cool-midway/core';
 import * as path from 'path';
 import { pCachePath, pUploadPath } from '../comm/path';
 import { availablePort } from '../comm/port';
+import type { LoggerInfo } from '@midwayjs/logger';
 
 // redis缓存
 // import { redisStore } from 'cache-manager-ioredis-yet';
 
+/** 控制台单行格式，便于 Docker/终端查看 */
+const consoleFormat = (info: LoggerInfo) =>
+  `${info.timestamp} ${info.LEVEL} [${info.pid}] ${info.message}`;
+
 export default {
   // 确保每个项目唯一，项目首次启动会自动生成
   keys: 'fc6fb10e-49f0-4d71-9cad-5e3665d6011d',
+  // 日志：统一等级与格式，保证控制台输出可读（含 Docker）
+  midwayLogger: {
+    default: {
+      level: 'info',
+      format: consoleFormat,
+      transports: {
+        console: {
+          format: consoleFormat,
+        },
+      },
+    },
+    clients: {
+      coreLogger: {
+        level: 'info',
+        format: consoleFormat,
+      },
+      appLogger: {
+        level: 'info',
+        format: consoleFormat,
+      },
+    },
+  },
   koa: {
     port: availablePort(8001),
   },
